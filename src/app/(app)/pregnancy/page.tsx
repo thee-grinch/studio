@@ -101,6 +101,24 @@ const appointments = [
     status: "Completed",
     summary: "Confirmed pregnancy. Discussed health history and initial advice."
   },
+  {
+    id: 4,
+    type: "Blood Work",
+    date: "2024-04-15",
+    time: "08:30 AM",
+    doctor: "Lab Quest",
+    status: "Completed",
+    summary: "Standard first trimester blood panel. Results normal."
+  },
+  {
+    id: 5,
+    type: "First Trimester Screening",
+    date: "2024-05-20",
+    time: "11:00 AM",
+    doctor: "Dr. Smith",
+    status: "Completed",
+    summary: "Nuchal translucency scan and blood test. Low risk results."
+  }
 ]
 
 const chartConfig: ChartConfig = {
