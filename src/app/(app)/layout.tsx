@@ -57,15 +57,16 @@ const menuItems = [
 
 function Footer() {
     return (
-        <footer className="fixed bottom-0 left-0 z-20 w-full px-4 bg-background border-t border-border shadow flex items-center justify-between h-14">
-            <span className="text-sm text-muted-foreground">© 2024 Mamatoto™. All Rights Reserved.
+        <footer className="fixed bottom-0 left-0 z-20 w-full px-4 bg-background border-t border-border shadow flex items-center justify-between h-14 md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] ease-in-out duration-300">
+            <span className="text-sm text-muted-foreground hidden sm:inline">© 2024 Mamatoto™. All Rights Reserved.
             </span>
-            <ul className="flex flex-wrap items-center text-sm font-medium text-muted-foreground">
+             <span className="text-sm text-muted-foreground sm:hidden">© 2024 Mamatoto™.</span>
+            <ul className="flex flex-wrap items-center text-sm font-medium text-muted-foreground gap-4 sm:gap-0">
                 <li>
-                    <a href="#" className="hover:underline me-4 md:me-6">Privacy Policy</a>
+                    <a href="#" className="hover:underline me-4 md:me-6">Privacy</a>
                 </li>
                 <li>
-                    <a href="#" className="hover:underline me-4 md:me-6">Terms of Service</a>
+                    <a href="#" className="hover:underline me-4 md:me-6">Terms</a>
                 </li>
                 <li>
                     <a href="#" className="hover:underline">Contact</a>
@@ -169,6 +170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [logSymptomOpen, setLogSymptomOpen] = useState(false);
   const [addNoteOpen, setAddNoteOpen] = useState(false);
 
+  const hideFab = pathname === '/appointments';
 
   return (
     <SidebarProvider>
@@ -177,7 +179,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AddNoteModal open={addNoteOpen} onOpenChange={setAddNoteOpen} />
 
       <div className="flex h-screen w-full">
-        <Sidebar className="h-screen top-0 md:h-[calc(100vh-3.5rem)]">
+        <Sidebar>
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
@@ -200,7 +202,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
           </SidebarFooter>
         </Sidebar>
-        <div className="flex flex-1 flex-col md:pl-[14rem]">
+        <div className="flex flex-1 flex-col md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] ease-in-out duration-300">
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
               <div className="md:hidden">
                  <SidebarTrigger />
@@ -208,44 +210,46 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="flex-1"></div>
               <UserNav />
           </header>
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 pb-20">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-20">
             {children}
           </main>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
-                    size="icon"
-                >
-                    <Plus className="h-8 w-8" />
-                    <span className="sr-only">Quick Log</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
-                <DropdownMenuLabel>Quick Log</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setLogWeightOpen(true)}>
-                    <Weight className="mr-2 h-4 w-4" />
-                    <span>Log Weight</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setLogSymptomOpen(true)}>
-                    <HeartPulse className="mr-2 h-4 w-4" />
-                    <span>Log Symptom/Mood</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setAddNoteOpen(true)}>
-                    <StickyNote className="mr-2 h-4 w-4" />
-                    <span>Add Note</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <Link href="/chatbot">
-                    <DropdownMenuItem>
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        <span>Quick Chat</span>
-                    </DropdownMenuItem>
-                </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!hideFab && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button
+                      className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+                      size="icon"
+                  >
+                      <Plus className="h-8 w-8" />
+                      <span className="sr-only">Quick Log</span>
+                  </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
+                  <DropdownMenuLabel>Quick Log</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setLogWeightOpen(true)}>
+                      <Weight className="mr-2 h-4 w-4" />
+                      <span>Log Weight</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setLogSymptomOpen(true)}>
+                      <HeartPulse className="mr-2 h-4 w-4" />
+                      <span>Log Symptom/Mood</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setAddNoteOpen(true)}>
+                      <StickyNote className="mr-2 h-4 w-4" />
+                      <span>Add Note</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <Link href="/chatbot">
+                      <DropdownMenuItem>
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          <span>Quick Chat</span>
+                      </DropdownMenuItem>
+                  </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <Footer />
         </div>

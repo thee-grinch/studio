@@ -202,7 +202,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, Jane!</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, Jane!</h1>
         <p className="text-muted-foreground">You're doing great! Here's your personalized update.</p>
       </div>
 
@@ -224,7 +224,7 @@ export default function DashboardPage() {
         <CardContent className="space-y-6">
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">Estimated Due Date</p>
-                <p className="text-4xl font-bold text-primary">{new Date(pregnancyInfo.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-2xl md:text-4xl font-bold text-primary">{new Date(pregnancyInfo.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <Progress value={progressPercentage} aria-label={`${progressPercentage.toFixed(0)}% of pregnancy complete`} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
@@ -244,34 +244,34 @@ export default function DashboardPage() {
         <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
             <LogSymptomModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1">
-                    <HeartPulse className="w-6 h-6" />
+                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
+                    <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Log Symptom</span>
                 </Button>
             </LogSymptomModal>
             <LogWeightModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1">
-                    <Weight className="w-6 h-6" />
+                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
+                    <Weight className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Log Weight</span>
                 </Button>
             </LogWeightModal>
             <NewAppointmentModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1">
-                    <CalendarPlus className="w-6 h-6" />
-                    <span>New Appointment</span>
+                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
+                    <CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span>New Appt.</span>
                 </Button>
             </NewAppointmentModal>
             <Link href="/chatbot" className="contents">
-                <Button variant="outline" className="flex flex-col h-20 gap-1">
-                    <MessageCircle className="w-6 h-6" />
+                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
+                    <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Open Chat</span>
                 </Button>
             </Link>
              <EmergencyModal>
-                <Button variant="destructive" className="flex flex-col h-20 gap-1">
-                    <Phone className="w-6 h-6" />
+                <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
+                    <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Emergency</span>
                 </Button>
             </EmergencyModal>
@@ -299,8 +299,8 @@ export default function DashboardPage() {
                             <p className="text-sm text-muted-foreground">With {appt.doctor}</p>
                         </div>
                         <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" asChild>
-                               <Link href="/appointments"><ExternalLink /></Link>
+                            <Button variant="ghost" size="icon" asChild>
+                               <Link href="/appointments"><ExternalLink className="h-5 w-5"/></Link>
                             </Button>
                         </div>
                     </div>

@@ -182,13 +182,13 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
                     </Button>
                 </div>
             </div>
-            <DialogFooter className="justify-between">
+            <DialogFooter className="flex-col sm:flex-row sm:justify-between items-stretch sm:items-center gap-2">
                 <div>
-                  {appt.status === "Upcoming" && <Button variant="destructive" size="sm"><Trash2 className="mr-2" /> Cancel</Button>}
+                  {appt.status === "Upcoming" && <Button variant="destructive" size="sm" className="w-full sm:w-auto"><Trash2 className="mr-2" /> Cancel</Button>}
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm"><CalendarPlus className="mr-2" /> Add to Calendar</Button>
-                    {appt.status === "Upcoming" && <Button size="sm"><Pencil className="mr-2" /> Edit</Button>}
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto"><CalendarPlus className="mr-2" /> Add to Calendar</Button>
+                    {appt.status === "Upcoming" && <Button size="sm" className="w-full sm:w-auto"><Pencil className="mr-2" /> Edit</Button>}
                 </div>
             </DialogFooter>
         </DialogContent>
@@ -213,7 +213,7 @@ function AppointmentCard({
   return (
     <Card className={`transition-all hover:shadow-md ${borderColor}`}>
       <CardHeader className="p-4">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="rounded-lg bg-muted p-3">
               <appt.icon className="h-6 w-6 text-muted-foreground" />
@@ -223,11 +223,11 @@ function AppointmentCard({
               <CardDescription>With {appt.doctor}</CardDescription>
             </div>
           </div>
-          <Badge variant={badgeVariant as any}>{statusText}</Badge>
+          <Badge variant={badgeVariant as any} className="self-start sm:self-auto">{statusText}</Badge>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-muted-foreground gap-2">
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4" />
             <span>
@@ -247,13 +247,13 @@ function AppointmentCard({
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2 p-4 pt-0">
-        <Button variant="outline" size="sm">
+      <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 p-4 pt-0">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <CalendarPlus className="mr-2" />
             Add to Calendar
         </Button>
         <AppointmentDetailsModal appt={appt}>
-            <Button variant="default" size="sm">
+            <Button variant="default" size="sm" className="w-full sm:w-auto">
                 <ExternalLink className="mr-2" />
                 View Details
             </Button>
@@ -351,7 +351,7 @@ export default function AppointmentsPage() {
       <div className="lg:col-span-2">
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Appointments</h1>
             <p className="text-muted-foreground">
               Manage your checkups, scans, and other visits.
             </p>

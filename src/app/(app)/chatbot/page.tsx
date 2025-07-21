@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, type FormEvent } from "react"
@@ -63,9 +64,9 @@ export default function ChatbotPage() {
   return (
     <div className="grid md:grid-cols-3 gap-8 h-full">
       {/* Main Chat Area */}
-      <div className="md:col-span-2 flex flex-col h-[calc(100vh-8rem)]">
+      <div className="md:col-span-2 flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-8rem)]">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Support Chat</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Support Chat</h1>
             <p className="text-muted-foreground">Your AI companion for support and information.</p>
         </div>
         <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
@@ -78,12 +79,12 @@ export default function ChatbotPage() {
                 }`}
               >
                 {message.role === "assistant" && (
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                     <AvatarFallback><Bot /></AvatarFallback>
                   </Avatar>
                 )}
                 <div
-                  className={`max-w-md rounded-lg p-3 text-sm ${
+                  className={`max-w-xs sm:max-w-md rounded-lg p-3 text-sm ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
@@ -92,7 +93,7 @@ export default function ChatbotPage() {
                   {message.content}
                 </div>
                 {message.role === "user" && (
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                     <AvatarImage src="https://placehold.co/100x100.png" alt="@user" data-ai-hint="woman face" />
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>

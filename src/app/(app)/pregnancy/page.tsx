@@ -289,14 +289,14 @@ export default function PregnancyPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Pregnancy Tracker</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Pregnancy Tracker</h1>
         <p className="text-muted-foreground">
           Manage and track your pregnancy journey and health details.
         </p>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="checkins">Check-ins</TabsTrigger>
           <TabsTrigger value="baby">Baby Updates</TabsTrigger>
@@ -313,18 +313,18 @@ export default function PregnancyPage() {
                         You’re {activePregnancy.currentWeek} weeks pregnant – entering the {activePregnancy.trimester}nd trimester!
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 md:grid-cols-3">
-                    <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
+                <CardContent className="grid gap-6 sm:grid-cols-3">
+                    <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Due Date</p>
-                        <p className="text-2xl font-bold">{activePregnancy.dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
+                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
                     </div>
-                     <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
+                     <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Time to Go</p>
-                        <p className="text-2xl font-bold">{weeksToGo} weeks</p>
+                        <p className="text-xl sm:text-2xl font-bold">{weeksToGo} weeks</p>
                     </div>
-                    <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
+                    <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Trimester</p>
-                        <p className="text-2xl font-bold">{activePregnancy.trimester}</p>
+                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.trimester}</p>
                     </div>
                 </CardContent>
              </Card>
@@ -372,7 +372,7 @@ export default function PregnancyPage() {
         <TabsContent value="checkins" className="mt-6">
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
-                    <CardHeader className="flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle>Weight Tracker</CardTitle>
                             <CardDescription>AI suggests weight gain is on a healthy track.</CardDescription>
@@ -399,7 +399,7 @@ export default function PregnancyPage() {
                     </CardContent>
                 </Card>
                  <Card>
-                    <CardHeader className="flex-row items-center justify-between">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle>Symptom & Mood Log</CardTitle>
                             <CardDescription>Recent check-ins.</CardDescription>
@@ -490,7 +490,7 @@ export default function PregnancyPage() {
 
         <TabsContent value="appointments" className="mt-6">
             <Card>
-                <CardHeader className="flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <CardTitle>Your Appointments</CardTitle>
                      <NewAppointmentModal>
                         <Button>
@@ -500,7 +500,7 @@ export default function PregnancyPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {appointments.map((appt) => (
-                        <div key={appt.id} className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                        <div key={appt.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-muted gap-2">
                             <div>
                                 <p className="font-semibold">{appt.type}</p>
                                 <p className="text-sm text-muted-foreground">

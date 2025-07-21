@@ -43,7 +43,7 @@ export default function ProfilePage() {
       <div className="lg:col-span-2">
         <div className="flex flex-col gap-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Profile</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">User Profile</h1>
             <p className="text-muted-foreground">
               Manage your account settings and personal information.
             </p>
@@ -138,7 +138,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="language">Preferred Language</Label>
+                <Label htmlFor="language">Language</Label>
                 <Select defaultValue="en">
                   <SelectTrigger id="language" className="w-[180px]">
                     <SelectValue placeholder="Select language" />
