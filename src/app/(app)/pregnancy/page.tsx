@@ -8,7 +8,7 @@ import {
   Calendar,
   ClipboardList,
   HeartPulse,
-  LineChart,
+  LineChart as LineChartIcon,
   Target,
   Utensils,
   Weight,
@@ -19,6 +19,7 @@ import {
   CartesianGrid,
   Legend,
   Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -216,16 +217,14 @@ export default function PregnancyPage() {
                     </CardHeader>
                     <CardContent>
                          <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                            <ResponsiveContainer>
-                                <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
+                            <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Legend />
+                                <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={false} />
+                            </LineChart>
                         </ChartContainer>
                     </CardContent>
                 </Card>
@@ -345,4 +344,4 @@ export default function PregnancyPage() {
     </div>
   )
 
-    
+}
