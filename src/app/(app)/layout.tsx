@@ -31,10 +31,10 @@ const menuItems = [
 
 function Footer() {
     return (
-        <footer className="w-full p-4 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-6 h-20">
-            <span className="text-sm text-muted-foreground sm:text-center">© 2024 Mamatoto™. All Rights Reserved.
+        <footer className="w-full px-4 bg-background border-t border-border shadow flex items-center justify-between h-14">
+            <span className="text-sm text-muted-foreground">© 2024 Mamatoto™. All Rights Reserved.
             </span>
-            <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-muted-foreground sm:mt-0">
+            <ul className="flex flex-wrap items-center text-sm font-medium text-muted-foreground">
                 <li>
                     <a href="#" className="hover:underline me-4 md:me-6">Privacy Policy</a>
                 </li>
@@ -56,7 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full">
-        <Sidebar className="h-[calc(100vh-5rem)] top-0 md:h-screen">
+        <Sidebar className="h-[calc(100vh-3.5rem)] top-0 md:h-[calc(100vh-3.5rem)]">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
@@ -89,7 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <UserNav />
           </header>
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 pb-16">
             {children}
           </main>
           <div className="mt-auto">
