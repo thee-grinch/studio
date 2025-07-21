@@ -13,26 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangle, CalendarPlus, MessageCircle, HeartPulse, Weight, Phone, ExternalLink } from "lucide-react"
 import Link from "next/link"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Textarea } from "@/components/ui/textarea"
+import { useModalStore } from "@/lib/store"
 
 const pregnancyInfo = {
   dueDate: "2024-12-25",
@@ -50,153 +31,8 @@ const urgentAlerts = [
     { id: 1, title: "High Blood Pressure Reading", description: "Your last reading was higher than normal. Please monitor and contact your doctor if it persists."}
 ];
 
-const NewAppointmentModal = ({ children }: { children: React.ReactNode }) => (
-  <Dialog>
-    <DialogTrigger asChild>{children}</DialogTrigger>
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>Schedule New Appointment</DialogTitle>
-        <DialogDescription>
-          Fill in the details for your new appointment.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="title" className="text-right">
-            Title
-          </Label>
-          <Input
-            id="title"
-            placeholder="e.g. Glucose Test"
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            Type
-          </Label>
-          <Select>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="checkup">Checkup</SelectItem>
-              <SelectItem value="scan">Ultrasound Scan</SelectItem>
-              <SelectItem value="nutrition">Nutrition Visit</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-start gap-4">
-          <Label className="pt-2 text-right">Date</Label>
-          <Calendar mode="single" className="col-span-3" />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="submit">Create Appointment</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-);
-
-const LogWeightModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle>Log Your Weight</DialogTitle>
-                <DialogDescription>Enter your current weight. Regular logging helps track your progress.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="weight">Weight (lbs)</Label>
-                    <Input id="weight" type="number" placeholder="e.g. 145.5" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="notes">Notes (optional)</Label>
-                    <Textarea id="notes" placeholder="Feeling great today!"/>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-            </div>
-            <DialogFooter>
-                 <Button variant="outline">Cancel</Button>
-                <Button type="submit">Save Log</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-const LogSymptomModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-                <DialogTitle>Log Today's Symptoms & Mood</DialogTitle>
-                <DialogDescription>Select any symptoms you're experiencing and how you're feeling.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6 py-4">
-                <div className="space-y-4">
-                    <Label>Symptoms</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="nausea" /> <Label htmlFor="nausea">Nausea</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="fatigue" /> <Label htmlFor="fatigue">Fatigue</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="back-pain" /> <Label htmlFor="back-pain">Back Pain</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="swelling" /> <Label htmlFor="swelling">Swelling</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="headache" /> <Label htmlFor="headache">Headache</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="cravings" /> <Label htmlFor="cravings">Cravings</Label></div>
-                    </div>
-                </div>
-                 <div className="space-y-4">
-                    <Label>Mood</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="happy" /> <Label htmlFor="happy">Happy</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="neutral" /> <Label htmlFor="neutral">Neutral</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="stressed" /> <Label htmlFor="stressed">Stressed</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="anxious" /> <Label htmlFor="anxious">Anxious</Label></div>
-                    </div>
-                </div>
-            </div>
-            <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-                <Button type="submit">Save Log</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-const EmergencyModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Emergency Contacts</DialogTitle>
-                <DialogDescription>In case of emergency, contact your provider or one of the contacts below.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                 <Button className="w-full justify-start gap-4" size="lg" variant="destructive">
-                    <Phone /> Call 911
-                </Button>
-                 <Button className="w-full justify-start gap-4" size="lg">
-                    <Phone /> Call John Doe (Partner)
-                </Button>
-                 <Button className="w-full justify-start gap-4" size="lg" variant="secondary">
-                    <Phone /> Call Dr. Smith (OB/GYN)
-                </Button>
-            </div>
-             <DialogFooter>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Close</Button>
-                </DialogTrigger>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-
 export default function DashboardPage() {
+  const openModal = useModalStore((state) => state.openModal);
   const progressPercentage = (pregnancyInfo.currentWeek / 40) * 100;
 
   return (
@@ -245,36 +81,28 @@ export default function DashboardPage() {
             <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
-            <LogSymptomModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
-                    <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span>Log Symptom</span>
-                </Button>
-            </LogSymptomModal>
-            <LogWeightModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
-                    <Weight className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span>Log Weight</span>
-                </Button>
-            </LogWeightModal>
-            <NewAppointmentModal>
-                <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
-                    <CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span>New Appt.</span>
-                </Button>
-            </NewAppointmentModal>
+            <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm" onClick={() => openModal('logSymptom')}>
+                <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Log Symptom</span>
+            </Button>
+            <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm" onClick={() => openModal('logWeight')}>
+                <Weight className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Log Weight</span>
+            </Button>
+            <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm" onClick={() => openModal('newAppointment')}>
+                <CalendarPlus className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>New Appt.</span>
+            </Button>
             <Link href="/chatbot" className="contents">
                 <Button variant="outline" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
                     <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Open Chat</span>
                 </Button>
             </Link>
-             <EmergencyModal>
-                <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm">
-                    <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span>Emergency</span>
-                </Button>
-            </EmergencyModal>
+             <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm" onClick={() => openModal('emergencyContacts')}>
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Emergency</span>
+            </Button>
         </CardContent>
       </Card>
 

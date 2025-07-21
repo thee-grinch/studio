@@ -41,27 +41,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { useModalStore } from "@/lib/store"
 
 
 const activePregnancy = {
@@ -164,126 +144,8 @@ function getWeeksToGo(dueDate: Date) {
   return diffWeeks
 }
 
-
-const NewAppointmentModal = ({ children }: { children: React.ReactNode }) => (
-  <Dialog>
-    <DialogTrigger asChild>{children}</DialogTrigger>
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>Schedule New Appointment</DialogTitle>
-        <DialogDescription>
-          Fill in the details for your new appointment.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="title" className="text-right">
-            Title
-          </Label>
-          <Input
-            id="title"
-            placeholder="e.g. Glucose Test"
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            Type
-          </Label>
-          <Select>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="checkup">Checkup</SelectItem>
-              <SelectItem value="scan">Ultrasound Scan</SelectItem>
-              <SelectItem value="nutrition">Nutrition Visit</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-start gap-4">
-          <Label className="pt-2 text-right">Date</Label>
-          <Calendar mode="single" className="col-span-3" />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="submit">Schedule</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-);
-
-const LogWeightModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle>Log Your Weight</DialogTitle>
-                <DialogDescription>Enter your current weight. Regular logging helps track your progress.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="weight">Weight (lbs)</Label>
-                    <Input id="weight" type="number" placeholder="e.g. 145.5" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="notes">Notes (optional)</Label>
-                    <Textarea id="notes" placeholder="Feeling great today!"/>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                </div>
-            </div>
-            <DialogFooter>
-                 <Button variant="outline">Cancel</Button>
-                <Button type="submit">Save Log</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-const LogSymptomModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-                <DialogTitle>Log Today's Symptoms & Mood</DialogTitle>
-                <DialogDescription>Select any symptoms you're experiencing and how you're feeling.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6 py-4">
-                <div className="space-y-4">
-                    <Label>Symptoms</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="nausea" /> <Label htmlFor="nausea">Nausea</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="fatigue" /> <Label htmlFor="fatigue">Fatigue</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="back-pain" /> <Label htmlFor="back-pain">Back Pain</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="swelling" /> <Label htmlFor="swelling">Swelling</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="headache" /> <Label htmlFor="headache">Headache</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="cravings" /> <Label htmlFor="cravings">Cravings</Label></div>
-                    </div>
-                </div>
-                 <div className="space-y-4">
-                    <Label>Mood</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="happy" /> <Label htmlFor="happy">Happy</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="neutral" /> <Label htmlFor="neutral">Neutral</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="stressed" /> <Label htmlFor="stressed">Stressed</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="anxious" /> <Label htmlFor="anxious">Anxious</Label></div>
-                    </div>
-                </div>
-            </div>
-            <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-                <Button type="submit">Save Log</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-
 export default function PregnancyPage() {
+  const openModal = useModalStore((state) => state.openModal);
   const weeksToGo = getWeeksToGo(activePregnancy.dueDate)
 
   return (
@@ -377,11 +239,9 @@ export default function PregnancyPage() {
                             <CardTitle>Weight Tracker</CardTitle>
                             <CardDescription>AI suggests weight gain is on a healthy track.</CardDescription>
                         </div>
-                        <LogWeightModal>
-                            <Button>
-                                <Weight className="mr-2 h-4 w-4" /> Log Weight
-                            </Button>
-                        </LogWeightModal>
+                        <Button onClick={() => openModal('logWeight')}>
+                            <Weight className="mr-2 h-4 w-4" /> Log Weight
+                        </Button>
                     </CardHeader>
                     <CardContent>
                          <ChartContainer config={chartConfig} className="h-[250px] w-full">
@@ -404,11 +264,9 @@ export default function PregnancyPage() {
                             <CardTitle>Symptom & Mood Log</CardTitle>
                             <CardDescription>Recent check-ins.</CardDescription>
                         </div>
-                         <LogSymptomModal>
-                             <Button>
-                                <HeartPulse className="mr-2 h-4 w-4" /> Log Symptom
-                            </Button>
-                         </LogSymptomModal>
+                         <Button onClick={() => openModal('logSymptom')}>
+                            <HeartPulse className="mr-2 h-4 w-4" /> Log Symptom
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {symptomData.map(log => (
@@ -492,11 +350,9 @@ export default function PregnancyPage() {
             <Card>
                 <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <CardTitle>Your Appointments</CardTitle>
-                     <NewAppointmentModal>
-                        <Button>
-                            <Calendar className="mr-2 h-4 w-4" /> New Appointment
-                        </Button>
-                     </NewAppointmentModal>
+                     <Button onClick={() => openModal('newAppointment')}>
+                        <Calendar className="mr-2 h-4 w-4" /> New Appointment
+                    </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {appointments.map((appt) => (

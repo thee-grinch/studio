@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon, Plus, Weight, HeartPulse, StickyNote } from "lucide-react"
+import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon, Plus, Weight, HeartPulse, StickyNote, Phone } from "lucide-react"
 
 import {
   SidebarProvider,
@@ -44,7 +44,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useModalStore } from "@/lib/store"
+import { Calendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 const menuItems = [
@@ -76,8 +78,63 @@ function Footer() {
     );
 }
 
-const LogWeightModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+const NewAppointmentModal = () => {
+  const { modals, closeModal } = useModalStore();
+
+  return (
+    <Dialog open={modals.newAppointment} onOpenChange={() => closeModal('newAppointment')}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Schedule New Appointment</DialogTitle>
+          <DialogDescription>
+            Fill in the details for your new appointment.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+              Title
+            </Label>
+            <Input
+              id="title"
+              placeholder="e.g. Glucose Test"
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="type" className="text-right">
+              Type
+            </Label>
+            <Select>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="checkup">Checkup</SelectItem>
+                <SelectItem value="scan">Ultrasound Scan</SelectItem>
+                <SelectItem value="nutrition">Nutrition Visit</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="pt-2 text-right">Date</Label>
+            <Calendar mode="single" className="col-span-3" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => closeModal('newAppointment')}>Cancel</Button>
+          <Button type="submit" onClick={() => closeModal('newAppointment')}>Schedule</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+};
+
+const LogWeightModal = () => {
+    const { modals, closeModal } = useModalStore();
+    return (
+      <Dialog open={modals.logWeight} onOpenChange={() => closeModal('logWeight')}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>Log Your Weight</DialogTitle>
@@ -98,15 +155,18 @@ const LogWeightModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: (
                 </div>
             </div>
             <DialogFooter>
-                 <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" onClick={() => onOpenChange(false)}>Save Log</Button>
+                 <Button variant="outline" onClick={() => closeModal('logWeight')}>Cancel</Button>
+                <Button type="submit" onClick={() => closeModal('logWeight')}>Save Log</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
-);
+    )
+};
 
-const LogSymptomModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+const LogSymptomModal = () => {
+    const { modals, closeModal } = useModalStore();
+    return (
+    <Dialog open={modals.logSymptom} onOpenChange={() => closeModal('logSymptom')}>
         <DialogContent className="sm:max-w-lg">
             <DialogHeader>
                 <DialogTitle>Log Today's Symptoms & Mood</DialogTitle>
@@ -135,15 +195,18 @@ const LogSymptomModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: 
                 </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" onClick={() => onOpenChange(false)}>Save Log</Button>
+                <Button variant="outline" onClick={() => closeModal('logSymptom')}>Cancel</Button>
+                <Button type="submit" onClick={() => closeModal('logSymptom')}>Save Log</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
-);
+    )
+};
 
-const AddNoteModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => (
-     <Dialog open={open} onOpenChange={onOpenChange}>
+const AddNoteModal = () => {
+    const { modals, closeModal } = useModalStore();
+    return (
+     <Dialog open={modals.addNote} onOpenChange={() => closeModal('addNote')}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>Add Quick Note</DialogTitle>
@@ -156,29 +219,58 @@ const AddNoteModal = ({ open, onOpenChange }: { open: boolean, onOpenChange: (op
                 </div>
             </div>
             <DialogFooter>
-                 <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" onClick={() => onOpenChange(false)}>Save Note</Button>
+                 <Button variant="outline" onClick={() => closeModal('addNote')}>Cancel</Button>
+                <Button type="submit" onClick={() => closeModal('addNote')}>Save Note</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
-);
+    )
+};
+
+const EmergencyModal = () => {
+    const { modals, closeModal } = useModalStore();
+    return (
+    <Dialog open={modals.emergencyContacts} onOpenChange={() => closeModal('emergencyContacts')}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Emergency Contacts</DialogTitle>
+                <DialogDescription>In case of emergency, contact your provider or one of the contacts below.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                 <Button className="w-full justify-start gap-4" size="lg" variant="destructive">
+                    <Phone /> Call 911
+                </Button>
+                 <Button className="w-full justify-start gap-4" size="lg">
+                    <Phone /> Call John Doe (Partner)
+                </Button>
+                 <Button className="w-full justify-start gap-4" size="lg" variant="secondary">
+                    <Phone /> Call Dr. Smith (OB/GYN)
+                </Button>
+            </div>
+             <DialogFooter>
+                <Button variant="outline" onClick={() => closeModal('emergencyContacts')}>Close</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    )
+};
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const [logWeightOpen, setLogWeightOpen] = useState(false);
-  const [logSymptomOpen, setLogSymptomOpen] = useState(false);
-  const [addNoteOpen, setAddNoteOpen] = useState(false);
+  const { openModal } = useModalStore();
 
   const hideFab = pathname === '/appointments';
 
   return (
     <SidebarProvider>
-      <LogWeightModal open={logWeightOpen} onOpenChange={setLogWeightOpen} />
-      <LogSymptomModal open={logSymptomOpen} onOpenChange={setLogSymptomOpen} />
-      <AddNoteModal open={addNoteOpen} onOpenChange={setAddNoteOpen} />
+      <NewAppointmentModal />
+      <LogWeightModal />
+      <LogSymptomModal />
+      <AddNoteModal />
+      <EmergencyModal />
 
-      <div className="flex h-screen w-full">
+      <div className="flex min-h-screen w-full">
         <Sidebar>
           <SidebarHeader>
             <Logo />
@@ -228,15 +320,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
                   <DropdownMenuLabel>Quick Log</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setLogWeightOpen(true)}>
+                  <DropdownMenuItem onSelect={() => openModal('logWeight')}>
                       <Weight className="mr-2 h-4 w-4" />
                       <span>Log Weight</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setLogSymptomOpen(true)}>
+                  <DropdownMenuItem onSelect={() => openModal('logSymptom')}>
                       <HeartPulse className="mr-2 h-4 w-4" />
                       <span>Log Symptom/Mood</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setAddNoteOpen(true)}>
+                  <DropdownMenuItem onSelect={() => openModal('addNote')}>
                       <StickyNote className="mr-2 h-4 w-4" />
                       <span>Add Note</span>
                   </DropdownMenuItem>

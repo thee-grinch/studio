@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useModalStore } from "@/lib/store"
 
 const allAppointments = [
   {
@@ -263,85 +264,8 @@ function AppointmentCard({
   )
 }
 
-const NewAppointmentModal = ({ children }: { children: React.ReactNode }) => (
-  <Dialog>
-    <DialogTrigger asChild>{children}</DialogTrigger>
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>Schedule New Appointment</DialogTitle>
-        <DialogDescription>
-          Fill in the details for your new appointment.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="title" className="text-right">
-            Title
-          </Label>
-          <Input
-            id="title"
-            placeholder="e.g. Glucose Test"
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            Type
-          </Label>
-          <Select>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="checkup">Checkup</SelectItem>
-              <SelectItem value="scan">Ultrasound Scan</SelectItem>
-              <SelectItem value="nutrition">Nutrition Visit</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-start gap-4">
-          <Label className="pt-2 text-right">Date</Label>
-          <Calendar mode="single" className="col-span-3" />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="submit">Schedule</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-);
-
-const EmergencyModal = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-        <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Emergency Contacts</DialogTitle>
-                <DialogDescription>In case of emergency, contact your provider or one of the contacts below.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                 <Button className="w-full justify-start gap-4" size="lg" variant="destructive">
-                    <Phone /> Call 911
-                </Button>
-                 <Button className="w-full justify-start gap-4" size="lg">
-                    <Phone /> Call John Doe (Partner)
-                </Button>
-                 <Button className="w-full justify-start gap-4" size="lg" variant="secondary">
-                    <Phone /> Call Dr. Smith (OB/GYN)
-                </Button>
-            </div>
-             <DialogFooter>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Close</Button>
-                </DialogTrigger>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-);
-
-
 export default function AppointmentsPage() {
+  const openModal = useModalStore((state) => state.openModal);
   const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
   const todaysAppointments = upcomingAppointments.filter(appt => new Date(appt.date).toDateString() === today.toDateString());
@@ -439,32 +363,29 @@ export default function AppointmentsPage() {
               <p className="text-sm text-muted-foreground">Confirm the location and arrive 15 minutes early to handle any paperwork.</p>
             </CardContent>
           </Card>
-          <EmergencyModal>
-            <Card className="border-red-500/20 cursor-pointer hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
-                    <AlertTriangle className="w-5 h-5" />
-                    Emergency
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">If you are experiencing a medical emergency, please contact your doctor or local emergency services immediately.</p>
-                  <Button className="w-full" variant="destructive" tabIndex={-1}>Call Emergency Contact</Button>
-                </CardContent>
-            </Card>
-          </EmergencyModal>
+          <Card className="border-red-500/20 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => openModal('emergencyContacts')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                  <AlertTriangle className="w-5 h-5" />
+                  Emergency
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">If you are experiencing a medical emergency, please contact your doctor or local emergency services immediately.</p>
+                <Button className="w-full" variant="destructive" tabIndex={-1}>Call Emergency Contact</Button>
+              </CardContent>
+          </Card>
         </div>
       </aside>
 
-      <NewAppointmentModal>
-        <Button
-            className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
-            size="icon"
-        >
-            <Plus className="h-8 w-8" />
-            <span className="sr-only">New Appointment</span>
-        </Button>
-      </NewAppointmentModal>
+      <Button
+          className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+          size="icon"
+          onClick={() => openModal('newAppointment')}
+      >
+          <Plus className="h-8 w-8" />
+          <span className="sr-only">New Appointment</span>
+      </Button>
     </div>
   )
 }
