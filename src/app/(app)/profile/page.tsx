@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Activity, Bell, Palette, Phone } from "lucide-react"
@@ -23,8 +24,19 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useToast } from "@/hooks/use-toast"
+
 
 export default function ProfilePage() {
+  const { toast } = useToast()
+
+  const handleSave = (section: string) => {
+    toast({
+      title: "Changes Saved!",
+      description: `Your ${section} details have been updated.`,
+    })
+  }
+  
   return (
     <div className="grid lg:grid-cols-3 gap-8">
       {/* Main Content Area */}
@@ -66,7 +78,7 @@ export default function ProfilePage() {
               </div>
             </CardContent>
             <CardFooter className="border-t px-6 py-4">
-              <Button>Save Personal Details</Button>
+              <Button onClick={() => handleSave('Personal')}>Save Personal Details</Button>
             </CardFooter>
           </Card>
           <Card>
@@ -85,7 +97,7 @@ export default function ProfilePage() {
                 </div>
             </CardContent>
              <CardFooter className="border-t px-6 py-4">
-              <Button>Save Emergency Contact</Button>
+              <Button onClick={() => handleSave('Emergency Contact')}>Save Emergency Contact</Button>
             </CardFooter>
           </Card>
         </div>

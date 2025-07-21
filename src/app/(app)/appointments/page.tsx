@@ -15,8 +15,11 @@ import {
   Utensils,
   Lightbulb,
   AlertTriangle,
+  FileText,
+  Pencil,
+  Trash2,
+  Phone,
 } from "lucide-react"
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -146,6 +149,53 @@ const getStatusStyles = (status: string) => {
   }
 }
 
+const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointments)[number], children: React.ReactNode }) => (
+    <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>{appt.type} with {appt.doctor}</DialogTitle>
+                <DialogDescription>
+                    {new Date(appt.date).toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })} at {appt.time}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="flex items-center gap-4">
+                    <MapPin className="w-5 h-5 text-muted-foreground" />
+                    <a href="#" className="text-primary hover:underline">{appt.location}</a>
+                </div>
+                 <div className="flex items-center gap-4">
+                    <Badge variant={getStatusStyles(appt.status).badgeVariant as any}>{appt.status}</Badge>
+                </div>
+                 <div className="p-4 bg-muted rounded-lg space-y-2">
+                    <h4 className="font-semibold">Preparation Checklist</h4>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground">
+                        <li>Arrive 15 minutes early</li>
+                        <li>Bring your ID and insurance card</li>
+                        <li>Write down any questions you have</li>
+                    </ul>
+                </div>
+                 <div className="p-4 bg-muted rounded-lg space-y-2">
+                    <h4 className="font-semibold">Attached Files</h4>
+                    <Button variant="link" className="p-0 h-auto gap-2">
+                        <FileText className="w-4 h-4" /> Lab_Request_Form.pdf
+                    </Button>
+                </div>
+            </div>
+            <DialogFooter className="justify-between">
+                <div>
+                  {appt.status === "Upcoming" && <Button variant="destructive" size="sm"><Trash2 className="mr-2" /> Cancel</Button>}
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm"><CalendarPlus className="mr-2" /> Add to Calendar</Button>
+                    {appt.status === "Upcoming" && <Button size="sm"><Pencil className="mr-2" /> Edit</Button>}
+                </div>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+);
+
+
 function AppointmentCard({
   appt,
 }: {
@@ -197,21 +247,99 @@ function AppointmentCard({
           )}
         </div>
       </CardContent>
-      {appt.status === "Upcoming" && (
-        <CardFooter className="flex justify-end gap-2 p-4 pt-0">
-          <Button variant="outline" size="sm">
+      <CardFooter className="flex justify-end gap-2 p-4 pt-0">
+        <Button variant="outline" size="sm">
             <CalendarPlus className="mr-2" />
             Add to Calendar
-          </Button>
-          <Button variant="outline" size="sm">
-            <ExternalLink className="mr-2" />
-            View Details
-          </Button>
-        </CardFooter>
-      )}
+        </Button>
+        <AppointmentDetailsModal appt={appt}>
+            <Button variant="default" size="sm">
+                <ExternalLink className="mr-2" />
+                View Details
+            </Button>
+        </AppointmentDetailsModal>
+      </CardFooter>
     </Card>
   )
 }
+
+const NewAppointmentModal = ({ children }: { children: React.ReactNode }) => (
+  <Dialog>
+    <DialogTrigger asChild>{children}</DialogTrigger>
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>Schedule New Appointment</DialogTitle>
+        <DialogDescription>
+          Fill in the details for your new appointment.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="title" className="text-right">
+            Title
+          </Label>
+          <Input
+            id="title"
+            placeholder="e.g. Glucose Test"
+            className="col-span-3"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="type" className="text-right">
+            Type
+          </Label>
+          <Select>
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="checkup">Checkup</SelectItem>
+              <SelectItem value="scan">Ultrasound Scan</SelectItem>
+              <SelectItem value="nutrition">Nutrition Visit</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-4 items-start gap-4">
+          <Label className="pt-2 text-right">Date</Label>
+          <Calendar mode="single" className="col-span-3" />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button type="submit">Schedule</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
+
+const EmergencyModal = ({ children }: { children: React.ReactNode }) => (
+    <Dialog>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Emergency Contacts</DialogTitle>
+                <DialogDescription>In case of emergency, contact your provider or one of the contacts below.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                 <Button className="w-full justify-start gap-4" size="lg" variant="destructive">
+                    <Phone /> Call 911
+                </Button>
+                 <Button className="w-full justify-start gap-4" size="lg">
+                    <Phone /> Call John Doe (Partner)
+                </Button>
+                 <Button className="w-full justify-start gap-4" size="lg" variant="secondary">
+                    <Phone /> Call Dr. Smith (OB/GYN)
+                </Button>
+            </div>
+             <DialogFooter>
+                <DialogTrigger asChild>
+                    <Button variant="outline">Close</Button>
+                </DialogTrigger>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+);
+
 
 export default function AppointmentsPage() {
   const today = new Date();
@@ -220,7 +348,6 @@ export default function AppointmentsPage() {
 
   return (
     <div className="grid lg:grid-cols-3 gap-8">
-      {/* Main Content Area */}
       <div className="lg:col-span-2">
         <div className="flex flex-col gap-6">
           <div>
@@ -285,7 +412,6 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {/* Right Side Panel */}
       <aside className="hidden lg:block">
         <div className="sticky top-20 space-y-6">
           <Card className="bg-primary/10 border-primary/30">
@@ -313,75 +439,32 @@ export default function AppointmentsPage() {
               <p className="text-sm text-muted-foreground">Confirm the location and arrive 15 minutes early to handle any paperwork.</p>
             </CardContent>
           </Card>
-          <Card className="border-red-500/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
-                <AlertTriangle className="w-5 h-5" />
-                Emergency
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">If you are experiencing a medical emergency, please contact your doctor or local emergency services immediately.</p>
-              <Button className="w-full" variant="destructive">Call Emergency Contact</Button>
-            </CardContent>
-          </Card>
+          <EmergencyModal>
+            <Card className="border-red-500/20 cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <AlertTriangle className="w-5 h-5" />
+                    Emergency
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">If you are experiencing a medical emergency, please contact your doctor or local emergency services immediately.</p>
+                  <Button className="w-full" variant="destructive" tabIndex={-1}>Call Emergency Contact</Button>
+                </CardContent>
+            </Card>
+          </EmergencyModal>
         </div>
       </aside>
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+      <NewAppointmentModal>
+        <Button
+            className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
             size="icon"
-          >
+        >
             <Plus className="h-8 w-8" />
             <span className="sr-only">New Appointment</span>
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Schedule New Appointment</DialogTitle>
-            <DialogDescription>
-              Fill in the details for your new appointment.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Title
-              </Label>
-              <Input
-                id="title"
-                placeholder="e.g. Glucose Test"
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
-                Type
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="checkup">Checkup</SelectItem>
-                  <SelectItem value="scan">Ultrasound Scan</SelectItem>
-                  <SelectItem value="nutrition">Nutrition Visit</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="pt-2 text-right">Date</Label>
-              <Calendar mode="single" className="col-span-3" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">Schedule</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </Button>
+      </NewAppointmentModal>
     </div>
   )
 }
