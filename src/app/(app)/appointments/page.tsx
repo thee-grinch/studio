@@ -13,6 +13,8 @@ import {
   Plus,
   Stethoscope,
   Utensils,
+  Lightbulb,
+  AlertTriangle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -125,25 +127,21 @@ const getStatusStyles = (status: string) => {
       return {
         borderColor: "border-green-500/80",
         badgeVariant: "default",
-        icon: <CalendarClock className="h-4 w-4" />,
       }
     case "Completed":
       return {
         borderColor: "border-blue-500/60",
         badgeVariant: "secondary",
-        icon: <CalendarCheck className="h-4 w-4" />,
       }
     case "Missed":
       return {
         borderColor: "border-red-500/60",
         badgeVariant: "destructive",
-        icon: <CalendarX className="h-4 w-4" />,
       }
     default:
       return {
         borderColor: "",
         badgeVariant: "outline",
-        icon: <CalendarIcon className="h-4 w-4" />,
       }
   }
 }
@@ -153,7 +151,7 @@ function AppointmentCard({
 }: {
   appt: (typeof allAppointments)[number]
 }) {
-  const { borderColor, badgeVariant, icon } = getStatusStyles(appt.status)
+  const { borderColor, badgeVariant } = getStatusStyles(appt.status)
 
   const isToday = new Date(appt.date).toDateString() === new Date().toDateString()
   const isTomorrow = new Date(appt.date).toDateString() === new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toDateString()
@@ -216,69 +214,119 @@ function AppointmentCard({
 }
 
 export default function AppointmentsPage() {
-  return (
-    <>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
-          <p className="text-muted-foreground">
-            Manage your checkups, scans, and other visits.
-          </p>
-        </div>
+  const today = new Date();
+  const todayFormatted = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
+  const todaysAppointments = upcomingAppointments.filter(appt => new Date(appt.date).toDateString() === today.toDateString());
 
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="upcoming">
-              Upcoming ({upcomingAppointments.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Completed ({completedAppointments.length})
-            </TabsTrigger>
-            <TabsTrigger value="missed">
-              Missed ({missedAppointments.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="upcoming" className="mt-4">
-            <div className="grid gap-4">
-              {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map((appt) => (
-                  <AppointmentCard key={appt.id} appt={appt} />
-                ))
-              ) : (
-                <p className="py-8 text-center text-muted-foreground">
-                  No upcoming appointments.
-                </p>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="completed" className="mt-4">
-            <div className="grid gap-4">
-              {completedAppointments.length > 0 ? (
-                completedAppointments.map((appt) => (
-                  <AppointmentCard key={appt.id} appt={appt} />
-                ))
-              ) : (
-                <p className="py-8 text-center text-muted-foreground">
-                  No completed appointments yet.
-                </p>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="missed" className="mt-4">
-            <div className="grid gap-4">
-              {missedAppointments.length > 0 ? (
-                missedAppointments.map((appt) => (
-                  <AppointmentCard key={appt.id} appt={appt} />
-                ))
-              ) : (
-                <p className="py-8 text-center text-muted-foreground">
-                  No missed appointments. Great job!
-                </p>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+  return (
+    <div className="grid lg:grid-cols-3 gap-8">
+      {/* Main Content Area */}
+      <div className="lg:col-span-2">
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
+            <p className="text-muted-foreground">
+              Manage your checkups, scans, and other visits.
+            </p>
+          </div>
+
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upcoming">
+                Upcoming ({upcomingAppointments.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed ({completedAppointments.length})
+              </TabsTrigger>
+              <TabsTrigger value="missed">
+                Missed ({missedAppointments.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="upcoming" className="mt-4">
+              <div className="grid gap-4">
+                {upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.map((appt) => (
+                    <AppointmentCard key={appt.id} appt={appt} />
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-muted-foreground">
+                    No upcoming appointments.
+                  </p>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="completed" className="mt-4">
+              <div className="grid gap-4">
+                {completedAppointments.length > 0 ? (
+                  completedAppointments.map((appt) => (
+                    <AppointmentCard key={appt.id} appt={appt} />
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-muted-foreground">
+                    No completed appointments yet.
+                  </p>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="missed" className="mt-4">
+              <div className="grid gap-4">
+                {missedAppointments.length > 0 ? (
+                  missedAppointments.map((appt) => (
+                    <AppointmentCard key={appt.id} appt={appt} />
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-muted-foreground">
+                    No missed appointments. Great job!
+                  </p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
+
+      {/* Right Side Panel */}
+      <aside className="hidden lg:block">
+        <div className="sticky top-20 space-y-6">
+          <Card className="bg-primary/10 border-primary/30">
+            <CardHeader>
+              <CardTitle>Today's Summary</CardTitle>
+               <CardDescription>{todayFormatted}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {todaysAppointments.length > 0 ? (
+                <p>You have {todaysAppointments.length} appointment(s) today.</p>
+              ) : (
+                <p>No appointments scheduled for today.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-500" />
+                Visit Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">Don't forget to write down any questions you have for your doctor before you go.</p>
+              <p className="text-sm text-muted-foreground">Confirm the location and arrive 15 minutes early to handle any paperwork.</p>
+            </CardContent>
+          </Card>
+          <Card className="border-red-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <AlertTriangle className="w-5 h-5" />
+                Emergency
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">If you are experiencing a medical emergency, please contact your doctor or local emergency services immediately.</p>
+              <Button className="w-full" variant="destructive">Call Emergency Contact</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </aside>
 
       <Dialog>
         <DialogTrigger asChild>
@@ -334,6 +382,6 @@ export default function AppointmentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }
