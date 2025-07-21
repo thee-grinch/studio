@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { Baby, CalendarDays, LayoutGrid, MessageCircle, User as UserIcon } from "lucide-react"
+import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon } from "lucide-react"
 
 import {
   SidebarProvider,
@@ -25,7 +25,7 @@ const menuItems = [
   { href: "/", label: "Dashboard", icon: LayoutGrid },
   { href: "/pregnancy", label: "Pregnancy", icon: Baby },
   { href: "/appointments", label: "Appointments", icon: CalendarDays },
-  { href: "/chatbot", label: "Support Chat", icon: MessageCircle },
+  { href: "/chatbot", label: "Support Chat", icon: MessageSquare },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ]
 
