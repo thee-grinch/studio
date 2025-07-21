@@ -31,7 +31,7 @@ const menuItems = [
 
 function Footer() {
     return (
-        <footer className="fixed bottom-0 left-0 z-20 w-full p-4 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-6">
+        <footer className="w-full p-4 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-6 h-20">
             <span className="text-sm text-muted-foreground sm:text-center">© 2024 Mamatoto™. All Rights Reserved.
             </span>
             <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-muted-foreground sm:mt-0">
@@ -55,8 +55,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
+      <div className="flex h-screen w-full">
+        <Sidebar className="h-[calc(100vh-5rem)] top-0 md:h-screen">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
@@ -79,8 +79,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
           </SidebarFooter>
         </Sidebar>
-        <div className="flex-1 flex flex-col md:pl-[14rem]">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+        <div className="flex flex-1 flex-col md:pl-[14rem]">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
               <div className="md:hidden">
                  <SidebarTrigger />
               </div>
@@ -89,10 +89,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <UserNav />
           </header>
-          <main className="flex-1 p-4 md:p-8 lg:p-10 pb-24">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
             {children}
           </main>
-          <Footer />
+          <div className="mt-auto">
+            <Footer />
+          </div>
         </div>
       </div>
     </SidebarProvider>
