@@ -1,11 +1,13 @@
-import { HeartHandshake } from 'lucide-react';
+import { Baby } from 'lucide-react';
 
 export function Logo() {
   return (
-    <div className="flex items-center gap-2" aria-label="Mama's Helper Logo">
-      <HeartHandshake className="h-7 w-7 text-accent-foreground" />
+    <div className="flex items-center gap-2" aria-label="Mamatoto Logo">
+      <div className="bg-primary p-1.5 rounded-md">
+        <Baby className="h-6 w-6 text-primary-foreground" />
+      </div>
       <span className="text-xl font-bold tracking-tight text-foreground">
-        Mama's Helper
+        Mamatoto
       </span>
     </div>
   );
