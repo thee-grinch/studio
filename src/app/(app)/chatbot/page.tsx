@@ -17,7 +17,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Mama's Helper AI. How can I assist you today with your pregnancy or infant health questions?",
+      content: "Hello! I'm your AI companion. Got questions about pregnancy or infant health? I'm here to provide support and information.",
     },
   ])
   const [input, setInput] = useState("")
@@ -61,8 +61,8 @@ export default function ChatbotPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
        <div>
-            <h1 className="text-3xl font-bold tracking-tight">AI Health Chatbot</h1>
-            <p className="text-muted-foreground">Ask any questions about pregnancy and infant health.</p>
+            <h1 className="text-3xl font-bold tracking-tight">Support Chat</h1>
+            <p className="text-muted-foreground">Your AI companion for support and information.</p>
         </div>
       <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
         <div className="space-y-6">
@@ -81,7 +81,7 @@ export default function ChatbotPage() {
               <div
                 className={`max-w-md rounded-lg p-3 text-sm ${
                   message.role === "user"
-                    ? "bg-accent text-accent-foreground"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 }`}
               >
@@ -89,7 +89,8 @@ export default function ChatbotPage() {
               </div>
                {message.role === "user" && (
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback><User /></AvatarFallback>
+                   <AvatarImage src="https://placehold.co/100x100.png" alt="@user" data-ai-hint="woman face" />
+                  <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon } from "lucide-react"
+import { Baby, CalendarDays, LayoutGrid, MessageCircle, User as UserIcon } from "lucide-react"
 
 import {
   SidebarProvider,
@@ -25,7 +25,7 @@ const menuItems = [
   { href: "/", label: "Dashboard", icon: LayoutGrid },
   { href: "/pregnancy", label: "Pregnancy", icon: Baby },
   { href: "/appointments", label: "Appointments", icon: CalendarDays },
-  { href: "/chatbot", label: "AI Chatbot", icon: MessageSquare },
+  { href: "/chatbot", label: "Support Chat", icon: MessageCircle },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ]
 
@@ -35,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen">
-        <Sidebar>
+        <Sidebar collapsible="none">
           <SidebarHeader>
             <Logo />
           </SidebarHeader>
@@ -64,7 +64,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                  <SidebarTrigger />
               </div>
               <div className="flex-1">
-                {/* Optional Header Title can go here */}
+                 {/* The logo is in the sidebar, no need to repeat it here. */}
               </div>
               <UserNav />
           </header>
