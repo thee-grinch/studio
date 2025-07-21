@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -27,6 +28,27 @@ const menuItems = [
   { href: "/chatbot", label: "Support Chat", icon: MessageSquare },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ]
+
+function Footer() {
+    return (
+        <footer className="fixed bottom-0 left-0 z-20 w-full p-4 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-6">
+            <span className="text-sm text-muted-foreground sm:text-center">© 2024 Mamatoto™. All Rights Reserved.
+            </span>
+            <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-muted-foreground sm:mt-0">
+                <li>
+                    <a href="#" className="hover:underline me-4 md:me-6">Privacy Policy</a>
+                </li>
+                <li>
+                    <a href="#" className="hover:underline me-4 md:me-6">Terms of Service</a>
+                </li>
+                <li>
+                    <a href="#" className="hover:underline">Contact</a>
+                </li>
+            </ul>
+        </footer>
+    );
+}
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -67,9 +89,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
               <UserNav />
           </header>
-          <main className="flex-1 p-4 md:p-8 lg:p-10">
+          <main className="flex-1 p-4 md:p-8 lg:p-10 pb-24">
             {children}
           </main>
+          <Footer />
         </div>
       </div>
     </SidebarProvider>
