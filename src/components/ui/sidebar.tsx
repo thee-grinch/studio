@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -175,7 +176,29 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, openMobile, setOpenMobile } = useSidebar()
+    const [isMounted, setIsMounted] = React.useState(false)
+
+    React.useEffect(() => {
+      setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+       // Render the desktop version on the server and during initial client render
+      return (
+        <aside
+          ref={ref}
+          className={cn(
+            "fixed inset-y-0 left-0 z-20 hidden h-full flex-col border-r bg-sidebar text-sidebar-foreground md:flex",
+            "w-[var(--sidebar-width)]",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </aside>
+      )
+    }
 
     if (isMobile) {
       return (
