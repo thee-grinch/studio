@@ -22,7 +22,6 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import {
   Card,
   CardContent,
@@ -40,15 +39,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
 
@@ -379,12 +369,19 @@ export default function AppointmentsPage() {
       </aside>
 
       <Button
-          className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+          className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-lg z-50 lg:hidden"
           size="icon"
           onClick={() => openModal('newAppointment')}
       >
           <Plus className="h-8 w-8" />
           <span className="sr-only">New Appointment</span>
+      </Button>
+       <Button
+          className="fixed bottom-24 right-6 h-14 rounded-full shadow-lg z-50 hidden lg:flex"
+          onClick={() => openModal('newAppointment')}
+      >
+          <Plus className="mr-2 h-5 w-5" />
+          New Appointment
       </Button>
     </div>
   )

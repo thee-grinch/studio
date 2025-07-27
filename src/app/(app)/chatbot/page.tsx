@@ -62,9 +62,9 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-8 h-full">
+    <div className="grid lg:grid-cols-3 gap-8 h-full">
       {/* Main Chat Area */}
-      <div className="md:col-span-2 flex flex-col h-[calc(100vh-10rem)] md:h-[calc(100vh-8rem)]">
+      <div className="lg:col-span-2 flex flex-col h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)]">
         <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Support Chat</h1>
             <p className="text-muted-foreground">Your AI companion for support and information.</p>
@@ -134,7 +134,7 @@ export default function ChatbotPage() {
       </div>
 
       {/* Right Side Panel */}
-      <aside className="hidden md:block">
+      <aside className="hidden lg:block">
         <div className="sticky top-20 space-y-6">
           <Card>
             <CardHeader>
@@ -144,9 +144,9 @@ export default function ChatbotPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">What's typical for Week 14?</Button>
-              <Button variant="outline" className="w-full justify-start">Ask about second trimester nutrition</Button>
-              <Button variant="outline" className="w-full justify-start">How's my weight trend?</Button>
+              <Button variant="outline" className="w-full justify-start text-left h-auto">What's typical for Week 14?</Button>
+              <Button variant="outline" className="w-full justify-start text-left h-auto">Ask about second trimester nutrition</Button>
+              <Button variant="outline" className="w-full justify-start text-left h-auto">How's my weight trend?</Button>
             </CardContent>
           </Card>
 
@@ -179,8 +179,8 @@ export default function ChatbotPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <a href="#" className="text-sm text-primary hover:underline">Understanding Second Trimester Changes</a>
-              <a href="#" className="text-sm text-primary hover:underline">Healthy Eating During Pregnancy</a>
+              <a href="#" className="block text-sm text-primary hover:underline">Understanding Second Trimester Changes</a>
+              <a href="#" className="block text-sm text-primary hover:underline">Healthy Eating During Pregnancy</a>
             </CardContent>
           </Card>
         </div>

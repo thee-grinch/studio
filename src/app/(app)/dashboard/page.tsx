@@ -99,7 +99,7 @@ export default function DashboardPage() {
                     <span>Open Chat</span>
                 </Button>
             </Link>
-             <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm" onClick={() => openModal('emergencyContacts')}>
+             <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm col-span-2 sm:col-span-1 md:col-span-1" onClick={() => openModal('emergencyContacts')}>
                 <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>Emergency</span>
             </Button>

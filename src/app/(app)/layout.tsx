@@ -38,7 +38,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -50,7 +49,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 
 const menuItems = [
-  { href: "/", label: "Dashboard", icon: LayoutGrid },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/pregnancy", label: "Pregnancy", icon: Baby },
   { href: "/appointments", label: "Appointments", icon: CalendarDays },
   { href: "/chatbot", label: "Support Chat", icon: MessageSquare },
@@ -59,11 +58,11 @@ const menuItems = [
 
 function Footer() {
     return (
-        <footer className="fixed bottom-0 left-0 z-20 w-full px-4 bg-background border-t border-border shadow flex items-center justify-between h-14 md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] ease-in-out duration-300">
-            <span className="text-sm text-muted-foreground hidden sm:inline">© 2024 Mamatoto™. All Rights Reserved.
+        <footer className="fixed bottom-0 left-0 z-20 w-full p-2 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-4">
+           <div className="w-full mx-auto max-w-screen-xl p-2 md:flex md:items-center md:justify-between">
+             <span className="text-sm text-muted-foreground sm:text-center">© 2024 <a href="#" className="hover:underline">Mamatoto™</a>. All Rights Reserved.
             </span>
-             <span className="text-sm text-muted-foreground sm:hidden">© 2024 Mamatoto™.</span>
-            <ul className="flex flex-wrap items-center text-sm font-medium text-muted-foreground gap-4 sm:gap-0">
+            <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-muted-foreground sm:mt-0">
                 <li>
                     <a href="#" className="hover:underline me-4 md:me-6">Privacy</a>
                 </li>
@@ -74,6 +73,7 @@ function Footer() {
                     <a href="#" className="hover:underline">Contact</a>
                 </li>
             </ul>
+           </div>
         </footer>
     );
 }
@@ -270,7 +270,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AddNoteModal />
       <EmergencyModal />
 
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-background">
         <Sidebar>
           <SidebarHeader>
             <Logo />
@@ -310,7 +310,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                   <Button
-                      className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+                      className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-lg z-50 lg:hidden"
                       size="icon"
                   >
                       <Plus className="h-8 w-8" />

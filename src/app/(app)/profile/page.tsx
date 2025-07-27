@@ -2,8 +2,6 @@
 "use client"
 
 import { Activity, Bell, Palette, Phone } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -25,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
+import { Badge } from "@/components/ui/badge"
 
 
 export default function ProfilePage() {
@@ -56,7 +55,7 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input id="name" defaultValue="Jane Doe" />
@@ -66,7 +65,7 @@ export default function ProfilePage() {
                   <Input id="email" type="email" defaultValue="jane.doe@example.com" />
                 </div>
               </div>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
@@ -86,7 +85,7 @@ export default function ProfilePage() {
                 <CardTitle>Emergency Contact</CardTitle>
                 <CardDescription>This contact will be used in case of an emergency.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-4">
+            <CardContent className="grid sm:grid-cols-2 gap-4">
                  <div className="space-y-2">
                   <Label htmlFor="emergency-name">Contact Name</Label>
                   <Input id="emergency-name" defaultValue="John Doe" />
@@ -140,7 +139,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="language">Language</Label>
                 <Select defaultValue="en">
-                  <SelectTrigger id="language" className="w-[180px]">
+                  <SelectTrigger id="language" className="w-auto sm:w-[180px]">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
