@@ -63,7 +63,7 @@ export default function DashboardPage() {
                 <p className="text-2xl md:text-4xl font-bold text-primary">{new Date(pregnancyInfo.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <Progress value={progressPercentage} aria-label={`${progressPercentage.toFixed(0)}% of pregnancy complete`} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
                 <div className="p-4 rounded-lg bg-muted">
                     <p className="text-sm text-muted-foreground">Current Week</p>
                     <p className="text-2xl font-bold">{pregnancyInfo.currentWeek} <span className="text-lg font-normal">/ 40</span></p>

@@ -84,7 +84,7 @@ export default function RegisterPage() {
                 </Button>
             </div>
           </div>
-           <div className="grid md:grid-cols-2 gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="grid gap-2">
               <Label htmlFor="location">Location</Label>
               <Input id="location" placeholder="e.g. Nairobi" required />
