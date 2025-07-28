@@ -13,13 +13,14 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = !getApps().length && firebaseConfig.apiKey 
-  ? initializeApp(firebaseConfig) 
-  : getApps().length > 0 
-    ? getApp() 
-    : null;
-    
+// Initialize Firebase only if the API key is provided
+const app =
+  !getApps().length && firebaseConfig.apiKey
+    ? initializeApp(firebaseConfig)
+    : getApps().length > 0
+      ? getApp()
+      : null;
+
 const auth = app ? getAuth(app) : null;
 const db = app ? getFirestore(app) : null;
 
