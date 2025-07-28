@@ -13,18 +13,38 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/logo"
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { resetPassword } from "@/lib/auth"
 
 export default function ForgotPasswordPage() {
     const [emailSent, setEmailSent] = useState(false)
+    const [email, setEmail] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const { toast } = useToast()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        setEmailSent(true);
+        if (!email) return;
+        setLoading(true);
+        setError(null);
+        try {
+            await resetPassword(email);
+            setEmailSent(true);
+            toast({
+                title: "Reset Link Sent!",
+                description: "Check your email for instructions to reset your password.",
+            });
+        } catch (err: any) {
+            setError(err.message || "Failed to send reset email. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     }
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto w-full max-w-sm">
         <CardHeader className="space-y-4 text-center">
             <div className="flex justify-center">
                 <Logo />
@@ -47,14 +67,17 @@ export default function ForgotPasswordPage() {
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        required
+                            id="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    <Button type="submit" className="w-full">
-                        Send Reset Link
+                    {error && <p className="text-sm text-destructive">{error}</p>}
+                    <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? 'Sending...' : 'Send Reset Link'}
                     </Button>
                 </form>
             )}

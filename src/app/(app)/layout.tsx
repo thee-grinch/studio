@@ -20,6 +20,9 @@ import { Logo } from "@/components/logo"
 import { UserNav } from "@/components/user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/hooks/use-auth"
+
 
 import {
   DropdownMenu,
@@ -59,22 +62,21 @@ const menuItems = [
 function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-      <footer className="fixed bottom-0 left-0 z-20 w-full p-2 bg-background border-t border-border shadow md:flex md:items-center md:justify-between md:p-4 h-14">
-         <div className="w-full mx-auto max-w-screen-xl p-2 md:flex md:items-center md:justify-between">
-           <span className="text-sm text-muted-foreground sm:text-center">© {currentYear} <a href="/" className="hover:underline">Mamatoto™</a>. All Rights Reserved.
-          </span>
-          <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-muted-foreground sm:mt-0">
+      <footer className="w-full px-4 md:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between py-4 text-sm text-muted-foreground">
+           <span>© {currentYear} <a href="/" className="hover:underline">Mamatoto™</a>. All Rights Reserved.</span>
+          <ul className="flex flex-wrap items-center gap-4 sm:gap-6">
               <li>
-                  <Link href="/privacy-policy" className="hover:underline me-4 md:me-6">Privacy</Link>
+                  <Link href="/privacy-policy" className="hover:underline">Privacy</Link>
               </li>
               <li>
-                  <Link href="/terms-of-service" className="hover:underline me-4 md:me-6">Terms</Link>
+                  <Link href="/terms-of-service" className="hover:underline">Terms</Link>
               </li>
               <li>
                   <Link href="/contact" className="hover:underline">Contact</Link>
               </li>
           </ul>
-         </div>
+        </div>
       </footer>
   );
 }
@@ -256,12 +258,53 @@ const EmergencyModal = () => {
     )
 };
 
+const LoadingSkeleton = () => (
+  <div className="flex min-h-screen w-full bg-background">
+      <div className="fixed inset-y-0 left-0 z-20 hidden h-screen flex-col border-r bg-sidebar md:flex w-[16rem] pb-14 p-4 space-y-4">
+        <Skeleton className="h-10 w-32" />
+        <div className="space-y-2 flex-1">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="mt-auto space-y-2">
+           <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+       <div className="flex flex-1 flex-col md:pl-[16rem]">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+              <div className="flex-1"></div>
+              <Skeleton className="h-9 w-9 rounded-full" />
+          </header>
+          <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-96" />
+              <Skeleton className="h-64 w-full" />
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <Skeleton className="h-48 w-full" />
+                 <Skeleton className="h-48 w-full" />
+                 <Skeleton className="h-48 w-full" />
+              </div>
+            </div>
+          </main>
+      </div>
+  </div>
+)
+
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { openModal } = useModalStore();
+  const { user, loading } = useAuth();
 
   const hideFab = pathname === '/appointments';
+
+  if (loading || !user) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <SidebarProvider>
@@ -271,81 +314,82 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AddNoteModal />
       <EmergencyModal />
 
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar>
-          <SidebarHeader>
-            <Logo />
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <Link href={item.href}>
-                    <SidebarMenuButton isActive={pathname === item.href} tooltip={item.label}>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <Separator className="my-2" />
-            <ThemeToggle />
-          </SidebarFooter>
-        </Sidebar>
-        <div className="flex flex-1 flex-col md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] ease-in-out duration-300">
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-              <div className="md:hidden">
-                 <SidebarTrigger />
-              </div>
-              <div className="flex-1"></div>
-              <UserNav />
-          </header>
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-20">
-            {children}
-          </main>
-          
-          {!hideFab && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                  <Button
-                      className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-lg z-50 lg:hidden"
-                      size="icon"
-                  >
-                      <Plus className="h-8 w-8" />
-                      <span className="sr-only">Quick Log</span>
-                  </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
-                  <DropdownMenuLabel>Quick Log</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => openModal('logWeight')}>
-                      <Weight className="mr-2 h-4 w-4" />
-                      <span>Log Weight</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openModal('logSymptom')}>
-                      <HeartPulse className="mr-2 h-4 w-4" />
-                      <span>Log Symptom/Mood</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => openModal('addNote')}>
-                      <StickyNote className="mr-2 h-4 w-4" />
-                      <span>Add Note</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <Link href="/chatbot">
-                      <DropdownMenuItem>
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          <span>Quick Chat</span>
-                      </DropdownMenuItem>
-                  </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          <Footer />
+      <div className="flex min-h-screen w-full flex-col bg-background">
+        <div className="flex flex-1">
+          <Sidebar>
+            <SidebarHeader>
+              <Logo />
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <Link href={item.href}>
+                      <SidebarMenuButton isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter>
+              <Separator className="my-2" />
+              <ThemeToggle />
+            </SidebarFooter>
+          </Sidebar>
+          <div className="flex flex-1 flex-col md:pl-[var(--sidebar-width)] group-data-[state=collapsed]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] ease-in-out duration-300">
+            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
+                <div className="md:hidden">
+                  <SidebarTrigger />
+                </div>
+                <div className="flex-1"></div>
+                <UserNav user={user} />
+            </header>
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+              {children}
+            </main>
+          </div>
         </div>
+        
+        {!hideFab && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg z-50 lg:hidden"
+                    size="icon"
+                >
+                    <Plus className="h-8 w-8" />
+                    <span className="sr-only">Quick Log</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 mb-2" align="end" side="top">
+                <DropdownMenuLabel>Quick Log</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => openModal('logWeight')}>
+                    <Weight className="mr-2 h-4 w-4" />
+                    <span>Log Weight</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openModal('logSymptom')}>
+                    <HeartPulse className="mr-2 h-4 w-4" />
+                    <span>Log Symptom/Mood</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openModal('addNote')}>
+                    <StickyNote className="mr-2 h-4 w-4" />
+                    <span>Add Note</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <Link href="/chatbot">
+                    <DropdownMenuItem>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        <span>Quick Chat</span>
+                    </DropdownMenuItem>
+                </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <Footer />
       </div>
     </SidebarProvider>
   )

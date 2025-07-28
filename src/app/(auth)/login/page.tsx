@@ -17,31 +17,38 @@ import { Logo } from "@/components/logo"
 import { useState, type FormEvent } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { logIn } from "@/lib/auth"
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // In a real app, you'd send this to your backend
-    // For this demo, we'll simulate a successful login
-    setTimeout(() => {
-      setLoading(false);
+    setError(null);
+    try {
+      await logIn(email, password);
       toast({
         title: "Login Successful!",
         description: "Redirecting to your dashboard...",
       });
       router.push('/dashboard');
-    }, 1000);
+    } catch (err: any) {
+      setError("Invalid email or password. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto w-full max-w-sm">
       <CardHeader className="space-y-4 text-center">
         <div className="flex justify-center">
          <Logo />
@@ -59,8 +66,9 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="you@example.com"
-              defaultValue="jane.doe@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
@@ -74,7 +82,13 @@ export default function LoginPage() {
               </Link>
             </div>
             <div className="relative">
-              <Input id="password" type={showPassword ? "text" : "password"} defaultValue="password123" required />
+              <Input 
+                id="password" 
+                type={showPassword ? "text" : "password"} 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
               <Button
                 type="button"
                 variant="ghost"
@@ -82,11 +96,12 @@ export default function LoginPage() {
                 className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff /> : <Eye />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
               </Button>
             </div>
           </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Logging in...' : 'Log In'}
           </Button>
