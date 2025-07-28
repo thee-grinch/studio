@@ -2,6 +2,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,11 +14,31 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/logo"
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { Eye, EyeOff } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // In a real app, you'd send this to your backend
+    // For this demo, we'll simulate a successful login
+    setTimeout(() => {
+      setLoading(false);
+      toast({
+        title: "Login Successful!",
+        description: "Redirecting to your dashboard...",
+      });
+      router.push('/dashboard');
+    }, 1000);
+  }
 
   return (
     <Card className="mx-auto max-w-sm w-full">
@@ -31,13 +52,14 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4">
+        <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
+              defaultValue="jane.doe@example.com"
               required
             />
           </div>
@@ -52,7 +74,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <div className="relative">
-              <Input id="password" type={showPassword ? "text" : "password"} required />
+              <Input id="password" type={showPassword ? "text" : "password"} defaultValue="password123" required />
               <Button
                 type="button"
                 variant="ghost"
@@ -65,10 +87,10 @@ export default function LoginPage() {
               </Button>
             </div>
           </div>
-          <Button type="submit" className="w-full">
-            Log In
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Logging in...' : 'Log In'}
           </Button>
-        </div>
+        </form>
         <div className="mt-4 text-center text-sm">
           New to Mamatoto?{" "}
           <Link href="/register" className="underline text-primary">
