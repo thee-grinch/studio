@@ -17,9 +17,14 @@ import { Logo } from "@/components/logo"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, type FormEvent } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { CalendarIcon, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { signUp } from "@/lib/auth"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+
 
 export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +32,7 @@ export default function RegisterPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [dueDate, setDueDate] = useState<Date>()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
@@ -43,11 +49,12 @@ export default function RegisterPage() {
         try {
             await signUp(email, password);
             // In a real app, you would also create a user document in Firestore here
+            // with the additional details like due date.
             toast({
                 title: "Account Created!",
                 description: "Please check your email to verify your account.",
             });
-            router.push('/verify-email'); // Or login, depending on flow
+            router.push('/verify-email');
         } catch (err: any) {
              if (err.code === 'auth/email-already-in-use') {
                 setError("This email address is already in use.");
@@ -60,7 +67,7 @@ export default function RegisterPage() {
     }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
+    <Card className="mx-auto w-full max-w-lg">
       <CardHeader className="space-y-4 text-center">
         <div className="flex justify-center">
          <Logo />
@@ -71,88 +78,96 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="full-name">Full Name</Label>
-            <Input id="full-name" placeholder="Jane Doe" required />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-           <div className="grid gap-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" placeholder="+254 7XX XXX XXX" required />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Create Password</Label>
-             <div className="relative">
-                <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    required 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
-            </div>
-          </div>
-           <div className="grid gap-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
-             <div className="relative">
-                <Input 
-                    id="confirm-password" 
-                    type={showConfirmPassword ? "text" : "password"} 
-                    required 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
-            </div>
-          </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="grid gap-2">
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" placeholder="e.g. Nairobi" required />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="language">Preferred Language</Label>
-               <Select>
-                <SelectTrigger id="language">
-                    <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="sw">Swahili</SelectItem>
-                </SelectContent>
-                </Select>
+              <Label htmlFor="full-name">Full Name</Label>
+              <Input id="full-name" placeholder="Jane Doe" required />
             </div>
-           </div>
+             <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="password">Create Password</Label>
+               <div className="relative">
+                  <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"} 
+                      required 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                  />
+                   <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowPassword(!showPassword)}
+                  >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                  </Button>
+              </div>
+            </div>
+             <div className="grid gap-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+               <div className="relative">
+                  <Input 
+                      id="confirm-password" 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      required 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                   <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
+                  </Button>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="due-date">Estimated Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={setDueDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
           <div className="flex items-start space-x-2 pt-2">
             <Checkbox id="terms" required />
             <div className="grid gap-1.5 leading-none">
