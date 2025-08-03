@@ -3,9 +3,9 @@ import { create } from 'zustand'
 type ModalType = 
   | 'newAppointment' 
   | 'logWeight' 
-  | 'logSymptom' 
-  | 'emergencyContacts'
-  | 'addNote';
+  | 'logSymptom'
+  | 'addNote'
+  | 'logSymptom'
 
 interface ModalState {
   modals: Record<ModalType, boolean>;
@@ -19,8 +19,6 @@ export const useModalStore = create<ModalState>()((set) => ({
     newAppointment: false,
     logWeight: false,
     logSymptom: false,
-    emergencyContacts: false,
-    addNote: false,
   },
   openModal: (type) => set((state) => ({
     modals: { ...state.modals, [type]: true }

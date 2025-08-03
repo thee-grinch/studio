@@ -14,24 +14,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangle, CalendarPlus, MessageCircle, HeartPulse, Weight, Phone, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useModalStore } from "@/lib/store"
-
-const pregnancyInfo = {
-  dueDate: "2024-12-25",
-  currentWeek: 14,
-  weeksRemaining: 26,
-  trimester: 2,
-}
-
-const upcomingAppointments = [
-  { id: 1, type: "Checkup", date: "2024-07-15", time: "10:00 AM", doctor: "Dr. Smith", icon: Stethoscope },
-  { id: 2, type: "Ultrasound Scan", date: "2024-07-29", time: "02:30 PM", doctor: "Tech. Johnson", icon: Baby },
-]
-
-const urgentAlerts = [
-    { id: 1, title: "High Blood Pressure Reading", description: "Your last reading was higher than normal. Please monitor and contact your doctor if it persists."}
-];
+import { useState, useEffect } from "react"
+import { fetchBackend } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
+import { type Appointment } from "@/lib/types" // Assuming you'll create this type
 
 export default function DashboardPage() {
+  const [pregnancyInfo, setPregnancyInfo] = useState<any>(null) // Define a proper type later
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
   const openModal = useModalStore((state) => state.openModal);
   const progressPercentage = (pregnancyInfo.currentWeek / 40) * 100;
 
