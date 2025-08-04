@@ -1,14 +1,12 @@
-from pydantic_settings import BaseSettings
-
-class Settings(BaseSettings):
-    SECRET_KEY: str = "your_super_secret_key" # Change this in production
-    ALGORITHM: str = "HS256"
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from . import schemas, crud, database
-from .auth import get_password_hash, verify_password, create_access_token
+
+from backend import schemas, database
 from fastapi.security import OAuth2PasswordRequestForm
+from backend.crud import user as user_crud
+from backend.dependencies import get_current_user
 from datetime import timedelta
 
 router = APIRouter()
@@ -16,14 +14,14 @@ router = APIRouter()
 @router.post("/register", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
+    if user_crud.get_user_by_email(db, email=user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
     hashed_password = get_password_hash(user.password)
-    return crud.create_user(db=db, user=user, hashed_password=hashed_password)
+    return user_crud.create_user(db=db, user=user, hashed_password=hashed_password)
 
 @router.post("/login")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
-    user = crud.get_user_by_email(db, email=form_data.username)
+    user = user_crud.get_user_by_email(db, email=form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,3 +33,19 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/users/me", response_model=schemas.UserPublic)
+def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+    return current_user
+
+
+@router.put("/users/me", response_model=schemas.UserPublic)
+def update_users_me(
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    db_user = user_crud.update_user(db=db, user_id=current_user.id, user_update=user_update)
+    # Assuming crud.update_user returns the updated user object
+    return db_user

@@ -20,13 +20,16 @@ import { useToast } from "@/hooks/use-toast"
 import { type Appointment } from "@/lib/types" // Assuming you'll create this type
 
 export default function DashboardPage() {
+  const [urgentAlerts, setUrgentAlerts] = useState<any[]>([]) // Define a proper type later
+  const [loadingAlerts, setLoadingAlerts] = useState(true)
+  const [alertsError, setAlertsError] = useState<string | null>(null)
   const [pregnancyInfo, setPregnancyInfo] = useState<any>(null) // Define a proper type later
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
   const openModal = useModalStore((state) => state.openModal);
   const progressPercentage = (pregnancyInfo.currentWeek / 40) * 100;
 
   return (
-    <div className="flex flex-col gap-6">
+ <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, Jane!</h1>
         <p className="text-muted-foreground">You're doing great! Here's your personalized update.</p>
@@ -34,14 +37,21 @@ export default function DashboardPage() {
 
       {urgentAlerts.length > 0 && (
         <Alert variant="destructive" className="border-red-500/50 text-red-500 dark:border-red-500 [&>svg]:text-red-500">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{urgentAlerts[0].title}</AlertTitle>
-            <AlertDescription>
-                {urgentAlerts[0].description}
-            </AlertDescription>
+ <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{urgentAlerts[0].title}</AlertTitle>
+          <AlertDescription>
+ {urgentAlerts[0].description}
+          </AlertDescription>
         </Alert>
       )}
       
+ {loadingAlerts && <p>Loading alerts...</p>}
+      {alertsError && <p className="text-sm text-destructive">Error loading alerts: {alertsError}</p>}
+      {!loadingAlerts && !alertsError && urgentAlerts.length === 0 && (
+        <Alert variant="default">
+ <AlertTitle>No Urgent Alerts</AlertTitle>
+ <AlertDescription>All systems go! No urgent health alerts at this time.</AlertDescription>
+        </Alert>
       <Card className="w-full">
         <CardHeader>
             <CardTitle>Your Journey</CardTitle>
@@ -143,3 +153,19 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetchBackend('/health-alerts', 'GET');
+        setUrgentAlerts(response);
+      } catch (err: any) {
+        setAlertsError(err.message || 'Failed to fetch health alerts.');
+        console.error('Error fetching health alerts:', err);
+      } finally {
+        setLoadingAlerts(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);

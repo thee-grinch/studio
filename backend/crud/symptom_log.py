@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
+from .pregnancy import get_active_pregnancy_by_user_id
 from typing import List
 
 def create_symptom_log(db: Session, symptom_log: schemas.SymptomLogCreate, user_id: int, pregnancy_id: int):
@@ -9,8 +10,13 @@ def create_symptom_log(db: Session, symptom_log: schemas.SymptomLogCreate, user_
     db.refresh(db_symptom_log)
     return db_symptom_log
 
-def get_symptom_logs(db: Session, user_id: int, pregnancy_id: int):
-    return db.query(models.SymptomLog).filter(models.SymptomLog.user_id == user_id, models.SymptomLog.pregnancy_id == pregnancy_id).all()
+def get_symptom_logs(db: Session, user_id: int, pregnancy_id: int | None = None):
+    if pregnancy_id is None:
+        active_pregnancy = get_active_pregnancy_by_user_id(db, user_id=user_id)
+        if active_pregnancy is None:
+            return []
+        pregnancy_id = active_pregnancy.id
+    return db.query(models.SymptomLog).filter(models.SymptomLog.user_id == user_id, models.SymptomLog.pregnancy_id == pregnancy_id).order_by(models.SymptomLog.date.desc()).all()
 
 def get_symptom_log(db: Session, symptom_log_id: int, user_id: int):
     return db.query(models.SymptomLog).filter(models.SymptomLog.id == symptom_log_id, models.SymptomLog.user_id == user_id).first()

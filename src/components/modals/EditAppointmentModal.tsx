@@ -40,7 +40,6 @@ export default function EditAppointmentModal({
   const [doctor, setDoctor] = useState("");
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState("Upcoming");
-  const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(true); // State to indicate if data is being fetched
@@ -58,7 +57,6 @@ export default function EditAppointmentModal({
           setTime(data.time); // Ensure time is in a format that works with the input type="time"
           setDoctor(data.doctor);
           setLocation(data.location || "");
-          setStatus(data.status);
           setSummary(data.summary || "");
         } catch (err: any) {
           setError(err.message || "Failed to fetch appointment details.");
@@ -77,7 +75,6 @@ export default function EditAppointmentModal({
         setDate("");
         setTime("");
         setDoctor("");
-        setLocation("");
         setStatus("Upcoming");
         setSummary("");
         setError(null);
@@ -102,7 +99,6 @@ export default function EditAppointmentModal({
       doctor,
       location,
       status,
-      summary,
       // pregnancy_id is likely not updated here
     };
 

@@ -42,67 +42,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
 
+import { fetchBackend } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 const allAppointments = [
-  {
-    id: 1,
-    type: "Checkup",
-    date: "2024-07-30",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    icon: Stethoscope,
-    status: "Upcoming",
-    location: "Main Clinic, Room 201",
-  },
-  {
-    id: 2,
-    type: "Ultrasound Scan",
-    date: "2024-08-15",
-    time: "02:30 PM",
-    doctor: "Tech. Johnson",
-    icon: Baby,
-    status: "Upcoming",
-    location: "Imaging Center",
-  },
-  {
-    id: 3,
-    type: "Nutrition Visit",
-    date: "2024-08-22",
-    time: "11:00 AM",
-    doctor: "Dr. Gable",
-    icon: Utensils,
-    status: "Upcoming",
-    location: "Wellness Hub",
-  },
-  {
-    id: 4,
-    type: "Previous Checkup",
-    date: "2024-07-01",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    icon: Stethoscope,
-    status: "Completed",
-    location: "Main Clinic, Room 201",
-  },
-  {
-    id: 5,
-    type: "Glucose Test",
-    date: "2024-06-20",
-    time: "09:00 AM",
-    doctor: "Lab Corp",
-    icon: Stethoscope,
-    status: "Completed",
-    location: "Downtown Lab",
-  },
-  {
-    id: 6,
-    type: "Dental Checkup",
-    date: "2024-06-10",
-    time: "03:00 PM",
-    doctor: "Dr. Adams",
-    icon: Stethoscope,
-    status: "Missed",
-    location: "City Dental",
-  },
 ]
 
 const upcomingAppointments = allAppointments
@@ -140,7 +82,48 @@ const getStatusStyles = (status: string) => {
   }
 }
 
-const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointments)[number], children: React.ReactNode }) => (
+interface AppointmentDetailsModalProps {
+  appt: any; // Use a more specific type if available from backend schema
+  children: React.ReactNode;
+  onAppointmentDeleted: (id: number) => void;
+}
+
+const getAppointmentIcon = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "checkup":
+    case "glucose test":
+    case "dental checkup":
+      return Stethoscope;
+    case "ultrasound scan":
+      return Baby;
+    case "nutrition visit":
+      return Utensils;
+    default: return CalendarCheck;
+  }
+}
+const AppointmentDetailsModal = ({ appt, children, onAppointmentDeleted }: AppointmentDetailsModalProps) => {
+  const openModal = useModalStore((state) => state.openModal);
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    try {
+      await fetchBackend(`/appointments/${appt.id}`, "DELETE");
+      toast({
+        title: "Appointment Deleted",
+        description: "The appointment has been successfully removed.",
+      });
+      onAppointmentDeleted(appt.id);
+    } catch (error) {
+      console.error("Failed to delete appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete appointment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
     <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -175,11 +158,12 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
             </div>
             <DialogFooter className="flex-col sm:flex-row sm:justify-between items-stretch sm:items-center gap-2">
                 <div>
-                  {appt.status === "Upcoming" && <Button variant="destructive" size="sm" className="w-full sm:w-auto"><Trash2 className="mr-2" /> Cancel</Button>}
+                  {appt.status === "Upcoming" && <Button variant="destructive" size="sm" className="w-full sm:w-auto" onClick={handleDelete}><Trash2 className="mr-2" /> Cancel</Button>}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <Button variant="outline" size="sm" className="w-full sm:w-auto"><CalendarPlus className="mr-2" /> Add to Calendar</Button>
-                    {appt.status === "Upcoming" && <Button size="sm" className="w-full sm:w-auto"><Pencil className="mr-2" /> Edit</Button>}
+                    {appt.status === "Upcoming" && <Button size="sm" className="w-full sm:w-auto" onClick={() => openModal('editAppointment', { appointmentId: appt.id })}><Pencil className="mr-2" /> Edit</Button>}
+
                 </div>
             </DialogFooter>
         </DialogContent>
@@ -187,10 +171,14 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
 );
 
 
+};
+
 function AppointmentCard({
   appt,
+  onAppointmentDeleted,
 }: {
-  appt: (typeof allAppointments)[number]
+  appt: any; // Use a more specific type
+  onAppointmentDeleted: (id: number) => void;
 }) {
   const { borderColor, badgeVariant } = getStatusStyles(appt.status)
 
@@ -208,7 +196,7 @@ function AppointmentCard({
           <div className="flex items-center gap-4">
             <div className="rounded-lg bg-muted p-3">
               <appt.icon className="h-6 w-6 text-muted-foreground" />
-            </div>
+</div>
             <div>
               <CardTitle className="text-lg">{appt.type}</CardTitle>
               <CardDescription>With {appt.doctor}</CardDescription>
@@ -243,7 +231,7 @@ function AppointmentCard({
             <CalendarPlus className="mr-2" />
             Add to Calendar
         </Button>
-        <AppointmentDetailsModal appt={appt}>
+        <AppointmentDetailsModal appt={appt} onAppointmentDeleted={onAppointmentDeleted}>
             <Button variant="default" size="sm" className="w-full sm:w-auto">
                 <ExternalLink className="mr-2" />
                 View Details
@@ -256,9 +244,69 @@ function AppointmentCard({
 
 export default function AppointmentsPage() {
   const openModal = useModalStore((state) => state.openModal);
+  const modalProps = useModalStore((state) => state.modalProps); // Get modal props
   const today = new Date();
+  // @ts-ignore
   const todayFormatted = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
-  const todaysAppointments = upcomingAppointments.filter(appt => new Date(appt.date).toDateString() === today.toDateString());
+
+  const [appointments, setAppointments] = React.useState<any[]>([]); // Use state for appointments
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const fetchAppointments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data: any[] = await fetchBackend("/appointments", "GET");
+      // Add icons to appointments based on type
+      const appointmentsWithIcons = data.map(appt => ({
+        ...appt,
+        icon: getAppointmentIcon(appt.type),
+      }));
+      setAppointments(appointmentsWithIcons);
+      setAppointments(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch appointments.");
+      console.error("Failed to fetch appointments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter appointments based on the fetched data
+  const upcomingAppointments = appointments
+    .filter((a) => a.status === "Upcoming")
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const completedAppointments = appointments
+    .filter((a) => a.status === "Completed")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const missedAppointments = appointments
+    .filter((a) => a.status === "Missed")
+  };
+
+  React.useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const handleAppointmentAdded = () => {
+    fetchAppointments(); // Refresh after adding
+  };
+
+  const handleAppointmentUpdated = () => {
+    fetchAppointments(); // Refresh after updating
+  };
+
+  const handleAppointmentDeleted = () => {
+    fetchAppointments(); // Refresh after deleting
+  };
+
+  const todaysAppointments = appointments.filter(
+    (a) =>
+      a.status === "Upcoming" &&
+      new Date(a.date).toDateString() === today.toDateString()
+  );
 
   return (
     <div className="grid lg:grid-cols-3 gap-8">
@@ -271,6 +319,15 @@ export default function AppointmentsPage() {
             </p>
           </div>
 
+          {loading && <div className="text-center text-muted-foreground py-8">Loading appointments...</div>}
+          {error && (
+            <div className="text-center text-destructive py-8">
+              <p>Error: {error}</p>
+              <Button onClick={fetchAppointments} variant="outline" className="mt-4">
+                Retry Fetching Appointments
+              </Button>
+            </div>
+          )}
           <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upcoming">
@@ -286,7 +343,7 @@ export default function AppointmentsPage() {
             <TabsContent value="upcoming" className="mt-4">
               <div className="grid gap-4">
                 {upcomingAppointments.length > 0 ? (
-                  upcomingAppointments.map((appt) => (
+                  upcomingAppointments.map((appt: any) => (
                     <AppointmentCard key={appt.id} appt={appt} />
                   ))
                 ) : (
@@ -299,7 +356,7 @@ export default function AppointmentsPage() {
             <TabsContent value="completed" className="mt-4">
               <div className="grid gap-4">
                 {completedAppointments.length > 0 ? (
-                  completedAppointments.map((appt) => (
+                  completedAppointments.map((appt: any) => (
                     <AppointmentCard key={appt.id} appt={appt} />
                   ))
                 ) : (
@@ -312,7 +369,7 @@ export default function AppointmentsPage() {
             <TabsContent value="missed" className="mt-4">
               <div className="grid gap-4">
                 {missedAppointments.length > 0 ? (
-                  missedAppointments.map((appt) => (
+                  missedAppointments.map((appt: any) => (
                     <AppointmentCard key={appt.id} appt={appt} />
                   ))
                 ) : (

@@ -7,7 +7,6 @@ class SymptomLogBase(BaseModel):
     symptom: str
     mood: str
     severity: str
-    pregnancy_id: Optional[int] = None
 
 class SymptomLogCreate(SymptomLogBase):
     pass

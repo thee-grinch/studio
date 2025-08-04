@@ -34,8 +34,7 @@ def list_symptom_logs(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    # By default, list symptom logs for the active pregnancy if no pregnancy_id is provided
-    return crud.get_symptom_logs(db=db, user_id=current_user.id, pregnancy_id=pregnancy_id)
+ return crud.get_symptom_logs(db=db, user_id=current_user.id, pregnancy_id=pregnancy_id)
 
 
 @router.get("/{symptom_log_id}", response_model=schemas.SymptomLog)
@@ -45,6 +44,36 @@ def read_symptom_log(
     current_user: models.User = Depends(get_current_user),
 ):
     db_symptom_log = crud.get_symptom_log(db=db, symptom_log_id=symptom_log_id, user_id=current_user.id)
+    if db_symptom_log is None:
+        raise HTTPException(status_code=404, detail="Symptom log not found")
+    return db_symptom_log
+
+
+@router.put("/{symptom_log_id}", response_model=schemas.SymptomLog)
+def update_symptom_log(
+    symptom_log_id: int,
+    symptom_log_update: schemas.SymptomLogCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    db_symptom_log = crud.update_symptom_log(
+        db=db,
+        symptom_log_id=symptom_log_id,
+        symptom_log_update=symptom_log_update,
+        user_id=current_user.id,
+    )
+    if db_symptom_log is None:
+        raise HTTPException(status_code=404, detail="Symptom log not found")
+    return db_symptom_log
+
+
+@router.delete("/{symptom_log_id}", response_model=schemas.SymptomLog)
+def delete_symptom_log(
+    symptom_log_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    db_symptom_log = crud.delete_symptom_log(db=db, symptom_log_id=symptom_log_id, user_id=current_user.id)
     if db_symptom_log is None:
         raise HTTPException(status_code=404, detail="Symptom log not found")
     return db_symptom_log

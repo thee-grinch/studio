@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SendHorizonal, Bot, User, Lightbulb, Link as LinkIcon, BookOpen, Stethoscope, Weight } from "lucide-react"
-import { healthChatbot } from "@/ai/flows/health-chatbot"
 import Link from "next/link"
+import { fetchBackend } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
   role: "user" | "assistant"
@@ -17,15 +18,35 @@ interface Message {
 }
 
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hello! I'm your AI companion. Got questions about pregnancy or infant health? I'm here to provide support and information.",
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [historyLoading, setHistoryLoading] = useState(true)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const history = await fetchBackend("/chat", "GET");
+        // Map backend data to frontend Message interface
+        const formattedHistory: Message[] = history.map((msg: any) => ({
+          role: msg.sender === "user" ? "user" : "assistant",
+          content: msg.message_text,
+        }));
+        setMessages(formattedHistory);
+      } catch (error) {
+        console.error("Failed to fetch chat history:", error); // Log error for debugging
+        toast({
+          title: "Error",
+          description: "Failed to load chat history. Please try again.",
+        });
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []); // Fetch history only on component mount
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -36,20 +57,44 @@ export default function ChatbotPage() {
     }
   }, [messages])
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => { 
     e.preventDefault()
     if (!input.trim() || isLoading) return
-
+ 
     const userMessage: Message = { role: "user", content: input }
-    setMessages((prev) => [...prev, userMessage])
+
+    // Add user message to UI immediately
+ setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
 
     try {
-      const response = await healthChatbot({ question: input })
-      const assistantMessage: Message = { role: "assistant", content: response.answer }
+      // Save user message to backend
+      await fetchBackend("/chat", "POST", {
+        message_text: userMessage.content,
+        sender: "user",
+      });
+
+      // Call backend AI endpoint for response
+      const aiResponse = await fetchBackend("/ai/chat", "POST", {
+ message: userMessage.content,
+      });
+
+      const assistantMessage: Message = {
+        role: "assistant",
+ content: aiResponse.response
+ };
+
+      // Save AI message to backend
+      await fetchBackend("/chat", "POST", {
+        sender: "assistant",
+ content: assistantMessage.content,
+      });
+
+      // Add AI message to UI after saving
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
+ console.error("Chatbot error:", error); // Log error for debugging
       const errorMessage: Message = {
         role: "assistant",
         content: "I'm sorry, I encountered an error. Please try again.",
@@ -57,12 +102,23 @@ export default function ChatbotPage() {
       setMessages((prev) => [...prev, errorMessage])
       console.error("Chatbot error:", error)
     } finally {
-      setIsLoading(false)
+ setIsLoading(false)
     }
   }
 
   return (
     <div className="grid lg:grid-cols-3 gap-8 h-full">
+      {historyLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-12 border-4 border-t-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="mt-4 text-xl font-semibold">Loading chat history...</div>
+              <p className="text-muted-foreground text-sm">This may take a moment.</p>
+            </div>
+            </div>
+        )}
+
+
       {/* Main Chat Area */}
       <div className="lg:col-span-2 flex flex-col h-[calc(100vh-12rem)] sm:h-[calc(100vh-10rem)]">
         <div>
@@ -71,6 +127,13 @@ export default function ChatbotPage() {
         </div>
         <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
           <div className="space-y-6">
+             {!historyLoading && messages.length === 0 && (
+              <div className="text-center text-muted-foreground italic">
+                Start the conversation by typing a message below!
+                <div className="mt-2 text-sm">Example questions: "What's typical for Week 14?", "Ask about second trimester nutrition", "How's my weight trend?"</div>
+              </div>
+            )}
+
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -100,10 +163,10 @@ export default function ChatbotPage() {
                 )}
               </div>
             ))}
-            {isLoading && (
-              <div className="flex items-start gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback><Bot /></AvatarFallback>
+            {isLoading && messages[messages.length -1]?.role === "user" && (
+              <div className="flex items-start gap-3 ">
+ <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+ <AvatarFallback><Bot /></AvatarFallback>
                 </Avatar>
                 <div className="max-w-md rounded-lg p-3 text-sm bg-muted">
                   <div className="flex items-center gap-2">

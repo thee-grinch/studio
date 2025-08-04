@@ -25,7 +25,13 @@ export async function fetchBackend(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || 'An error occurred');
+    const errorMessage = error.detail || 'An error occurred';
+    const statusCode = response.status;
+    const errorResponse = {
+      message: errorMessage,
+      statusCode: statusCode,
+    };
+    throw new Error(JSON.stringify(errorResponse));
   }
 
   // Handle cases where the response might be empty (e.g., 204 No Content)

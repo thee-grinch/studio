@@ -43,6 +43,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
 
+import { useEffect, useState } from "react"
+import { fetchBackend } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 const activePregnancy = {
   dueDate: new Date("2024-12-25"),
@@ -59,77 +62,6 @@ const nextAppointment = {
   doctor: "Tech. Johnson",
 }
 
-const weightData = [
-  { date: "Wk 8", weight: 140 },
-  { date: "Wk 9", weight: 140.5 },
-  { date: "Wk 10", weight: 141 },
-  { date: "Wk 11", weight: 142 },
-  { date: "Wk 12", weight: 142.5 },
-  { date: "Wk 13", weight: 144 },
-  { date: "Wk 14", weight: 145 },
-]
-
-const symptomData = [
-    { id: 1, date: "2024-07-10", symptom: "Morning Sickness", mood: "Tired", severity: "Mild"},
-    { id: 2, date: "2024-07-09", symptom: "Fatigue", mood: "Okay", severity: "Moderate"},
-    { id: 3, date: "2024-07-08", symptom: "Cravings (pickles)", mood: "Happy", severity: "Mild"},
-]
-
-
-const appointments = [
-  {
-    id: 1,
-    type: "Checkup",
-    date: "2024-07-15",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    status: "Upcoming",
-  },
-  {
-    id: 2,
-    type: "Ultrasound Scan",
-    date: "2024-07-29",
-    time: "02:30 PM",
-    doctor: "Tech. Johnson",
-    status: "Upcoming",
-  },
-   {
-    id: 6,
-    type: "Nutrition Visit",
-    date: "2024-08-22",
-    time: "11:00 AM",
-    doctor: "Dr. Gable",
-    status: "Upcoming",
-  },
-  {
-    id: 3,
-    type: "Initial Visit",
-    date: "2024-04-01",
-    time: "09:00 AM",
-    doctor: "Dr. Smith",
-    status: "Completed",
-    summary: "Confirmed pregnancy. Discussed health history and initial advice."
-  },
-  {
-    id: 4,
-    type: "Blood Work",
-    date: "2024-04-15",
-    time: "08:30 AM",
-    doctor: "Lab Quest",
-    status: "Completed",
-    summary: "Standard first trimester blood panel. Results normal."
-  },
-  {
-    id: 5,
-    type: "First Trimester Screening",
-    date: "2024-05-20",
-    time: "11:00 AM",
-    doctor: "Dr. Smith",
-    status: "Completed",
-    summary: "Nuchal translucency scan and blood test. Low risk results."
-  }
-]
-
 const chartConfig: ChartConfig = {
   weight: {
     label: "Weight (lbs)",
@@ -145,9 +77,58 @@ function getWeeksToGo(dueDate: Date) {
 }
 
 export default function PregnancyPage() {
-  const openModal = useModalStore((state) => state.openModal);
-  const weeksToGo = getWeeksToGo(activePregnancy.dueDate)
+  const [pregnancyInfo, setPregnancyInfo] = useState(null);
+  const [weightData, setWeightData] = useState([]);
+  const [symptomData, setSymptomData] = useState([]);
+  const [loadingPregnancy, setLoadingPregnancy] = useState(true);
+  const [loadingWeight, setLoadingWeight] = useState(true);
+  const [loadingSymptom, setLoadingSymptom] = useState(true);
+  const [errorPregnancy, setErrorPregnancy] = useState(null);
+  const [errorWeight, setErrorWeight] = useState(null);
+  const [errorSymptom, setErrorSymptom] = useState(null);
 
+  const openModal = useModalStore((state) => state.openModal);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch Pregnancy Info
+      try {
+        const pregnancy = await fetchBackend("/pregnancies/active", "GET");
+        setPregnancyInfo(pregnancy);
+        setLoadingPregnancy(false);
+      } catch (err) {
+        console.error("Failed to fetch pregnancy info:", err);
+        setErrorPregnancy("Failed to load pregnancy data.");
+        setLoadingPregnancy(false);
+      }
+
+      // Fetch Weight Logs
+      try {
+        const weightLogs = await fetchBackend("/weight-logs", "GET");
+        setWeightData(weightLogs.map(log => ({ date: log.date, weight: log.weight }))); // Assuming date and weight fields
+        setLoadingWeight(false);
+      } catch (err) {
+        console.error("Failed to fetch weight logs:", err);
+        setErrorWeight("Failed to load weight data.");
+        setLoadingWeight(false);
+      }
+
+      // Fetch Symptom Logs
+      try {
+        const symptomLogs = await fetchBackend("/symptom-logs", "GET");
+        setSymptomData(symptomLogs);
+        setLoadingSymptom(false);
+      } catch (err) {
+        console.error("Failed to fetch symptom logs:", err);
+        setErrorSymptom("Failed to load symptom data.");
+        setLoadingSymptom(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const weeksToGo = pregnancyInfo ? getWeeksToGo(new Date(pregnancyInfo.due_date)) : null;
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -171,22 +152,36 @@ export default function PregnancyPage() {
              <Card className="lg:col-span-3">
                 <CardHeader>
                     <CardTitle className="text-center">Your Journey</CardTitle>
-                    <CardDescription className="text-center">
+                    {loadingPregnancy && <CardDescription className="text-center">Loading journey details...</CardDescription>}
+                    {errorPregnancy && <CardDescription className="text-center text-destructive">{errorPregnancy}</CardDescription>}
+                    {pregnancyInfo && (
+                        <CardDescription className="text-center">
                         You’re {activePregnancy.currentWeek} weeks pregnant – entering the {activePregnancy.trimester}nd trimester!
-                    </CardDescription>
+                        </CardDescription>
+                    )}
                 </CardHeader>
                 <CardContent className="grid gap-6 sm:grid-cols-3">
+                    {loadingPregnancy && (
+                        <>
+                            <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg animate-pulse h-24"></div>
+                            <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg animate-pulse h-24"></div>
+                            <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg animate-pulse h-24"></div>
+                        </>
+                    )}
+                     {errorPregnancy && <div className="lg:col-span-3 text-center text-destructive">{errorPregnancy}</div>}
+                    {pregnancyInfo && (
+                        <>
                     <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Due Date</p>
-                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
+                        <p className="text-xl sm:text-2xl font-bold">{new Date(pregnancyInfo.due_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
                     </div>
                      <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Time to Go</p>
                         <p className="text-xl sm:text-2xl font-bold">{weeksToGo} weeks</p>
                     </div>
                     <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
-                        <p className="text-sm text-muted-foreground">Trimester</p>
-                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.trimester}</p>
+                        <p className="text-sm text-muted-foreground">Weeks Pregnant</p>
+                        <p className="text-xl sm:text-2xl font-bold">{pregnancyInfo.current_week}</p>
                     </div>
                 </CardContent>
              </Card>
@@ -236,7 +231,9 @@ export default function PregnancyPage() {
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
-                            <CardTitle>Weight Tracker</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <Weight className="h-5 w-5 text-primary" /> Weight Tracker
+                            </CardTitle>
                             <CardDescription>AI suggests weight gain is on a healthy track.</CardDescription>
                         </div>
                         <Button onClick={() => openModal('logWeight')}>
@@ -244,6 +241,10 @@ export default function PregnancyPage() {
                         </Button>
                     </CardHeader>
                     <CardContent>
+                         {loadingWeight && <p className="text-center text-muted-foreground">Loading weight data...</p>}
+                         {errorWeight && <p className="text-center text-destructive">{errorWeight}</p>}
+                         {!loadingWeight && !errorWeight && weightData.length === 0 && <p className="text-center text-muted-foreground">No weight data logged yet.</p>}
+                         {!loadingWeight && !errorWeight && weightData.length > 0 && (
                          <ChartContainer config={chartConfig} className="h-[250px] w-full">
                             <ResponsiveContainer>
                                 <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
@@ -256,13 +257,17 @@ export default function PregnancyPage() {
                                 </LineChart>
                             </ResponsiveContainer>
                         </ChartContainer>
+                         )}
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
-                            <CardTitle>Symptom & Mood Log</CardTitle>
-                            <CardDescription>Recent check-ins.</CardDescription>
+                             <CardTitle className="flex items-center gap-2">
+                                <HeartPulse className="h-5 w-5 text-destructive" /> Symptom & Mood Log
+                            </CardTitle>
+
+                           {loadingSymptom ? <CardDescription>Loading recent check-ins...</CardDescription> : <CardDescription>Recent check-ins.</CardDescription>}
                         </div>
                          <Button onClick={() => openModal('logSymptom')}>
                             <HeartPulse className="mr-2 h-4 w-4" /> Log Symptom
@@ -270,15 +275,47 @@ export default function PregnancyPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {symptomData.map(log => (
-                        <div key={log.id} className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div key={log.id} className="flex justify-between items-start p-3 bg-muted rounded-lg gap-2 flex-wrap">
                             <div>
                                 <p className="font-semibold">{log.symptom}</p>
-                                <p className="text-sm text-muted-foreground">{new Date(log.date).toLocaleDateString()}</p>
+                                <p className="text-xs text-muted-foreground">{new Date(log.date).toLocaleDateString()}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Badge variant={log.mood === "Happy" ? "default" : "secondary"}>{log.mood}</Badge>
                                 <Badge variant="outline">{log.severity}</Badge>
                             </div>
+                        </div>
+                      ))}
+                       {loadingSymptom && <div className="text-center text-muted-foreground">Loading symptoms...</div>}
+                       {errorSymptom && <div className="text-center text-destructive">{errorSymptom}</div>}
+                       {!loadingSymptom && !errorSymptom && symptomData.length === 0 && (
+                            <div className="text-center text-muted-foreground">No symptoms logged yet.</div>
+                       )}
+                    </CardContent>
+                </Card>
+            </div>
+        </TabsContent>
+
+        <TabsContent value="appointments" className="mt-6">
+            <Card>
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <CardTitle>Your Appointments</CardTitle>
+                     <Button onClick={() => openModal('newAppointment')}>
+                        <Calendar className="mr-2 h-4 w-4" /> New Appointment
+                    </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {/* Assuming you have an appointments state or are fetching them */}
+                    {appointments.map((appt) => ( // Replace 'appointments' with your actual state/data source
+                        <div key={appt.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-muted gap-2">
+                            <div>
+                                <p className="font-semibold">{appt.type}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {new Date(appt.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {appt.time} with {appt.doctor}
+                                </p>
+                                {appt.status === "Completed" && <p className="text-xs text-muted-foreground mt-1">Summary: {appt.summary}</p>}
+                            </div>
+                            <Badge variant={appt.status === "Upcoming" ? "default" : "secondary"}>{appt.status}</Badge>
                         </div>
                       ))}
                     </CardContent>
