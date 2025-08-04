@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from backend import schemas, database
+from .. import schemas, database
 from fastapi.security import OAuth2PasswordRequestForm
 from backend.crud import user as user_crud
 from backend.dependencies import get_current_user
