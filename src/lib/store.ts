@@ -4,8 +4,8 @@ type ModalType =
   | 'newAppointment' 
   | 'logWeight' 
   | 'logSymptom'
-  | 'addNote'
-  | 'logSymptom'
+ | 'editAppointment'
+  | 'addNote'; // Assuming 'addNote' is a valid modal type
 
 interface ModalState {
   modals: Record<ModalType, boolean>;
