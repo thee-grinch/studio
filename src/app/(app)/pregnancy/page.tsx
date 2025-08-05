@@ -158,7 +158,7 @@ function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
     
     if (isError || !data) return <p>Could not load baby updates at this time.</p>;
     
-    const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(data.imageHint)}`;
+    const imageUrl = `https://placehold.co/400x400.png`;
 
     return (
         <Card>
