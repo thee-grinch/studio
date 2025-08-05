@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { useAuth } from './use-auth';
 
 interface UserDocument {
@@ -23,7 +23,7 @@ const useUserDocumentStore = create<UserDocumentState>((set, get) => ({
   setUserDocument: (doc) => set({ userDocument: doc, loading: false }),
   setLoading: (loading) => set({ loading }),
   refreshUserDocument: async () => {
-    const { user } = useAuth.getState();
+    const user = auth?.currentUser;
     if (!user || !db) return;
     
     console.log("Refreshing user document...");
