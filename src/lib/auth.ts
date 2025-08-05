@@ -1,5 +1,5 @@
 
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -7,33 +7,20 @@ import {
   signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
+  updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-
 
 // Re-export the User type for convenience
 export type { User };
 
 // Simplified wrapper functions
-export const signUp = async (email, password, fullName, dueDate) => {
-  if (!auth || !db) {
+export const signUp = async (email, password, fullName) => {
+  if (!auth) {
     throw new Error("Firebase has not been initialized correctly.");
   }
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-
-  // Create a document for the user in Firestore
-  await setDoc(doc(db, "users", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    displayName: fullName,
-    dueDate: dueDate,
-    createdAt: serverTimestamp(),
-  });
-
-  // Send verification email
-  await sendEmailVerification(user);
+  await updateProfile(userCredential.user, { displayName: fullName });
   return userCredential;
 };
 

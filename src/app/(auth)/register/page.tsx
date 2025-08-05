@@ -16,23 +16,13 @@ import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/logo"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState, type FormEvent } from "react"
-import { CalendarIcon, Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { signUp } from "@/lib/auth"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-
 
 export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [fullName, setFullName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [dueDate, setDueDate] = useState<Date>()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
@@ -40,23 +30,26 @@ export default function RegisterPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const fullName = (form.elements.namedItem('full-name') as HTMLInputElement).value;
+        const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+        const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+        const confirmPassword = (form.elements.namedItem('confirm-password') as HTMLInputElement).value;
+
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
         }
-        if (!dueDate) {
-            setError("Please select an estimated due date.");
-            return;
-        }
+
         setLoading(true);
         setError(null);
         try {
-            await signUp(email, password, fullName, dueDate);
+            await signUp(email, password, fullName);
             toast({
                 title: "Account Created!",
-                description: "Please check your email to verify your account.",
+                description: "You have been successfully signed up.",
             });
-            router.push('/verify-email');
+            router.push('/dashboard');
         } catch (err: any) {
              if (err.code === 'auth/email-already-in-use') {
                 setError("This email address is already in use.");
@@ -84,13 +77,7 @@ export default function RegisterPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="full-name">Full Name</Label>
-              <Input 
-                id="full-name" 
-                placeholder="Jane Doe" 
-                required 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
+              <Input id="full-name" placeholder="Jane Doe" required />
             </div>
              <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -99,8 +86,6 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="you@example.com"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -108,13 +93,7 @@ export default function RegisterPage() {
             <div className="grid gap-2">
               <Label htmlFor="password">Create Password</Label>
                <div className="relative">
-                  <Input 
-                      id="password" 
-                      type={showPassword ? "text" : "password"} 
-                      required 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <Input id="password" type={showPassword ? "text" : "password"} required />
                    <Button
                       type="button"
                       variant="ghost"
@@ -130,13 +109,7 @@ export default function RegisterPage() {
              <div className="grid gap-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
                <div className="relative">
-                  <Input 
-                      id="confirm-password" 
-                      type={showConfirmPassword ? "text" : "password"} 
-                      required 
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
+                  <Input id="confirm-password" type={showConfirmPassword ? "text" : "password"} required />
                    <Button
                       type="button"
                       variant="ghost"
@@ -149,31 +122,6 @@ export default function RegisterPage() {
                   </Button>
               </div>
             </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="due-date">Estimated Due Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
           </div>
           
           <div className="flex items-start space-x-2 pt-2">
