@@ -21,6 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getDashboardTip } from "@/ai/flows/dashboard-tip-flow"
 import { useUserSubcollection } from "@/hooks/use-user-subcollection"
+import { getBabyUpdate } from "@/ai/flows/baby-update-flow"
+import { DynamicPexelsImage } from "@/components/dynamic-pexels-image"
+
 
 const getIconForType = (type: string) => {
   switch (type) {
@@ -119,6 +122,63 @@ const PersonalizedTip = ({ pregnancyInfo, symptoms, weights }: { pregnancyInfo: 
         </Alert>
     )
 }
+
+const WeeklyUpdateCard = ({ currentWeek }: { currentWeek: number }) => {
+    const { data: babyUpdate, isLoading } = useQuery({
+        queryKey: ['babyUpdateDashboard', currentWeek],
+        queryFn: () => getBabyUpdate({ currentWeek }),
+        enabled: currentWeek > 0,
+        staleTime: 1000 * 60 * 60 * 24, // 24 hours
+        refetchOnWindowFocus: false,
+    });
+
+    if (isLoading) {
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Tip of the Week</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="w-full h-40 rounded-lg" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-10 w-full" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    if (!babyUpdate) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Tip of the Week</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <img src="https://placehold.co/600x400.png" data-ai-hint="pregnancy illustration" alt="Weekly insight" className="rounded-lg mb-4" />
+                    <h3 className="font-semibold mb-1">Get Ready!</h3>
+                    <p className="text-sm text-muted-foreground">Complete your profile to start receiving personalized weekly updates about your baby's development.</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Tip of the Week</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <DynamicPexelsImage 
+                  hint={babyUpdate.imageHint} 
+                  alt={babyUpdate.title}
+                  className="rounded-lg mb-4 w-full h-48 object-cover" 
+                />
+                <h3 className="font-semibold mb-1">{babyUpdate.title}</h3>
+                <p className="text-sm text-muted-foreground">{babyUpdate.description}</p>
+            </CardContent>
+        </Card>
+    );
+};
 
 
 export default function DashboardPage() {
@@ -279,19 +339,8 @@ export default function DashboardPage() {
             </CardContent>
         </Card>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Tip of the Week</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <img src="https://placehold.co/600x400.png" data-ai-hint="lemon fruit" alt="Weekly insight" className="rounded-lg mb-4" />
-                <h3 className="font-semibold mb-1">Baby is the size of a lemon!</h3>
-                <p className="text-sm text-muted-foreground">Your baby is developing taste buds this week. The food you eat can flavor the amniotic fluid!</p>
-            </CardContent>
-        </Card>
+        <WeeklyUpdateCard currentWeek={pregnancyInfo.currentWeek} />
       </div>
     </div>
   )
 }
-
-    

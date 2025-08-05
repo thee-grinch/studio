@@ -52,6 +52,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getBabyUpdate } from "@/ai/flows/baby-update-flow"
 import { getHealthTips } from "@/ai/flows/health-tips-flow"
 import Link from "next/link"
+import { DynamicPexelsImage } from "@/components/dynamic-pexels-image"
 
 
 const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
@@ -132,33 +133,6 @@ const getLinkForCategory = (category: string) => {
     }
 }
 
-function BabyUpdateImage({ hint, alt }: { hint: string, alt: string }) {
-    const { data: imageUrl, isLoading, isError } = useQuery({
-        queryKey: ['pexelsImage', hint],
-        queryFn: async () => {
-            const response = await fetch(`/api/images?q=${encodeURIComponent(hint)}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch image');
-            }
-            const data = await response.json();
-            return data.imageUrl;
-        },
-        enabled: !!hint,
-        staleTime: Infinity, // Cache the image URL forever
-    });
-
-    if (isLoading) {
-        return <Skeleton className="w-full h-64 md:w-1/3 rounded-lg" />;
-    }
-
-    if (isError || !imageUrl) {
-        return <Image src="https://placehold.co/400x400.png" alt={alt} width={400} height={400} className="w-full md:w-1/3 rounded-lg" />;
-    }
-
-    return <Image src={imageUrl} alt={alt} width={400} height={400} className="w-full md:w-1/3 rounded-lg object-cover" />;
-}
-
-
 function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['babyUpdate', currentWeek],
@@ -192,7 +166,11 @@ function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
                 <CardTitle>Week {currentWeek}: Baby Updates</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row gap-6 items-center">
-                 <BabyUpdateImage hint={data.imageHint} alt={data.title} />
+                 <DynamicPexelsImage 
+                    hint={data.imageHint} 
+                    alt={data.title}
+                    className="w-full md:w-1/3 h-64 rounded-lg object-cover"
+                 />
                 <div className="space-y-4">
                     <h3 className="text-2xl font-bold">{data.title}</h3>
                     <p className="text-muted-foreground">{data.description}</p>
@@ -401,7 +379,7 @@ export default function PregnancyPage() {
                         </Button>
                     </CardHeader>
                     <CardContent>
-                         <ChartContainer config={chartConfig} className="w-full">
+                         <ChartContainer config={chartConfig} className="w-full h-64">
                             <ResponsiveContainer>
                                 <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
@@ -504,5 +482,3 @@ export default function PregnancyPage() {
     </div>
   )
 }
-
-    
