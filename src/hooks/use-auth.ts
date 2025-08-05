@@ -12,24 +12,42 @@ export function useAuth() {
   const pathname = usePathname();
 
   useEffect(() => {
+    console.log("Auth: Subscribing to auth changes.");
     const unsubscribe = onAuthChange((user) => {
-      setUser(user);
+      console.log("Auth: onAuthChange event fired.");
+      if (user) {
+        console.log("Auth: User is logged in.", user);
+        setUser(user);
+      } else {
+        console.log("Auth: User is logged out.");
+        setUser(null);
+      }
       setLoading(false);
+      console.log("Auth: Loading state set to false.");
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log("Auth: Unsubscribing from auth changes.");
+      unsubscribe();
+    }
   }, []);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      console.log("Auth: Still loading, skipping navigation logic.");
+      return;
+    };
 
     const isAuthRoute = AUTH_ROUTES.includes(pathname);
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || pathname === '/';
 
+    console.log(`Auth: Checking routes. Path: ${pathname}, IsAuth: ${isAuthRoute}, IsPublic: ${isPublicRoute}, User: ${!!user}`);
 
     if (user && isAuthRoute) {
+      console.log("Auth: User is on auth page, redirecting to /dashboard.");
       router.replace('/dashboard');
     } else if (!user && !isAuthRoute && !isPublicRoute) {
+      console.log("Auth: User is not logged in and on a protected page, redirecting to /login.");
       router.replace('/login');
     }
   }, [user, loading, pathname, router]);
