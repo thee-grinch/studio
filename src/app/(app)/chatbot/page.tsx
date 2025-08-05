@@ -8,19 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SendHorizonal, Bot, User, Lightbulb, Link as LinkIcon, BookOpen, Stethoscope, Weight } from "lucide-react"
-import { healthChatbot } from "@/ai/flows/health-chatbot"
+import { healthChatbot, type HealthChatbotInput } from "@/ai/flows/health-chatbot"
 import Link from "next/link"
 
 interface Message {
-  role: "user" | "assistant"
-  content: string
+  role: "user" | "model"
+  content: { text: string }[]
 }
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: "assistant",
-      content: "Hello! I'm your AI companion. Got questions about pregnancy or infant health? I'm here to provide support and information.",
+      role: "model",
+      content: [{ text: "Hello! I'm your AI companion, Mamatoto. Got questions about pregnancy or infant health? I'm here to provide support and information."}],
     },
   ])
   const [input, setInput] = useState("")
@@ -40,19 +40,31 @@ export default function ChatbotPage() {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const userMessage: Message = { role: "user", content: input }
-    setMessages((prev) => [...prev, userMessage])
+    const userMessage: Message = { role: "user", content: [{ text: input }] }
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages)
+    const currentInput = input;
     setInput("")
     setIsLoading(true)
 
     try {
-      const response = await healthChatbot({ question: input })
-      const assistantMessage: Message = { role: "assistant", content: response.answer }
+      const history = newMessages.slice(0, -1).map(msg => ({
+        ...msg,
+        role: msg.role === 'model' ? 'model' : 'user'
+      }));
+
+      const inputForAI: HealthChatbotInput = { 
+        question: currentInput,
+        history: history as HealthChatbotInput['history']
+      };
+      
+      const response = await healthChatbot(inputForAI)
+      const assistantMessage: Message = { role: "model", content: [{ text: response.answer }] }
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
       const errorMessage: Message = {
-        role: "assistant",
-        content: "I'm sorry, I encountered an error. Please try again.",
+        role: "model",
+        content: [{ text: "I'm sorry, I encountered an error. Please try again."}],
       }
       setMessages((prev) => [...prev, errorMessage])
       console.error("Chatbot error:", error)
@@ -78,7 +90,7 @@ export default function ChatbotPage() {
                   message.role === "user" ? "justify-end" : ""
                 }`}
               >
-                {message.role === "assistant" && (
+                {message.role === "model" && (
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
                     <AvatarFallback><Bot /></AvatarFallback>
                   </Avatar>
@@ -90,7 +102,7 @@ export default function ChatbotPage() {
                       : "bg-muted"
                   }`}
                 >
-                  {message.content}
+                  {message.content[0].text}
                 </div>
                 {message.role === "user" && (
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
