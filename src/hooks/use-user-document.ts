@@ -17,7 +17,7 @@ interface UserDocumentState {
   refreshUserDocument: () => Promise<void>;
 }
 
-const useUserDocumentStore = create<UserDocumentState>((set, get) => ({
+const useUserDocumentStore = create<UserDocumentState>((set) => ({
   userDocument: null,
   loading: true,
   setUserDocument: (doc) => set({ userDocument: doc, loading: false }),
@@ -27,17 +27,16 @@ const useUserDocumentStore = create<UserDocumentState>((set, get) => ({
     if (!user || !db) return;
     
     console.log("Refreshing user document...");
-    get().setLoading(true);
+    set({ loading: true });
     const docRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      get().setUserDocument(docSnap.data());
+      set({ userDocument: docSnap.data(), loading: false });
       console.log("User document refreshed:", docSnap.data());
     } else {
-      get().setUserDocument(null);
+      set({ userDocument: null, loading: false });
       console.log("No user document found after refresh.");
     }
-    get().setLoading(false);
   }
 }));
 
