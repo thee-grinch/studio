@@ -12,7 +12,8 @@ import {
   Target,
   Utensils,
   Weight,
-  Plus
+  Plus,
+  ExternalLink
 } from "lucide-react"
 import {
   CartesianGrid,
@@ -49,6 +50,7 @@ import { useUserDocument } from "@/hooks/use-user-document"
 import { useQuery } from "@tanstack/react-query"
 import { getBabyUpdate } from "@/ai/flows/baby-update-flow"
 import { getHealthTips } from "@/ai/flows/health-tips-flow"
+import Link from "next/link"
 
 
 const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
@@ -116,6 +118,19 @@ const getIconForCategory = (category: string) => {
     }
 };
 
+const getLinkForCategory = (category: string) => {
+    switch (category) {
+        case "Nutrition":
+            return "https://www.acog.org/womens-health/faqs/nutrition-during-pregnancy";
+        case "Exercise":
+            return "https://www.acog.org/womens-health/faqs/exercise-during-pregnancy";
+        case "Emotional Wellness":
+            return "https://www.marchofdimes.org/find-support/topics/pregnancy/emotional-and-mental-health-during-pregnancy";
+        default:
+            return "#";
+    }
+}
+
 function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['babyUpdate', currentWeek],
@@ -153,9 +168,12 @@ function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
                 <div className="space-y-4">
                     <h3 className="text-2xl font-bold">{data.title}</h3>
                     <p className="text-muted-foreground">{data.description}</p>
-                     <Button variant="link" className="p-0 h-auto">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Read more about fetal development
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                        <a href="https://www.mayoclinic.org/healthy-lifestyle/pregnancy-week-by-week/in-depth/fetal-development/art-20046151" target="_blank" rel="noopener noreferrer">
+                            <BookOpen className="mr-2 h-4 w-4" />
+                            Read more about fetal development
+                            <ExternalLink className="ml-2 h-4 w-4" />
+                        </a>
                     </Button>
                 </div>
             </CardContent>
@@ -195,6 +213,7 @@ function HealthTipsTab({ currentWeek }: { currentWeek: number }) {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.tips.map((tip) => {
                 const Icon = getIconForCategory(tip.category);
+                const link = getLinkForCategory(tip.category);
                 return (
                     <Card key={tip.category}>
                         <CardHeader className="flex items-center gap-4">
@@ -205,7 +224,11 @@ function HealthTipsTab({ currentWeek }: { currentWeek: number }) {
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground">{tip.tip}</p>
-                            <Button variant="link" className="p-0 h-auto mt-2">Learn more</Button>
+                            <Button variant="link" className="p-0 h-auto mt-2" asChild>
+                                <a href={link} target="_blank" rel="noopener noreferrer">
+                                  Learn more <ExternalLink className="ml-2 h-4 w-4" />
+                                </a>
+                            </Button>
                         </CardContent>
                     </Card>
                 );
@@ -319,7 +342,9 @@ export default function PregnancyPage() {
                       </p>
                     </>
                   ) : <p className="text-sm text-muted-foreground">No upcoming appointments.</p>}
-                    <Button variant="link" className="p-0 h-auto mt-2">View All</Button>
+                    <Button variant="link" className="p-0 h-auto mt-2" asChild>
+                      <Link href="/appointments">View All</Link>
+                    </Button>
                 </CardContent>
             </Card>
 
@@ -451,3 +476,5 @@ export default function PregnancyPage() {
     </div>
   )
 }
+
+    
