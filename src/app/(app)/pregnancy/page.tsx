@@ -157,6 +157,8 @@ function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
     }
     
     if (isError || !data) return <p>Could not load baby updates at this time.</p>;
+    
+    const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(data.imageHint)}`;
 
     return (
         <Card>
@@ -164,7 +166,7 @@ function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
                 <CardTitle>Week {currentWeek}: Baby Updates</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row gap-6 items-center">
-                 <img src={`https://placehold.co/400x400.png`} data-ai-hint={data.imageHint} alt={data.title} className="w-full md:w-1/3 rounded-lg" />
+                 <img src={imageUrl} data-ai-hint={data.imageHint} alt={data.title} className="w-full md:w-1/3 rounded-lg" />
                 <div className="space-y-4">
                     <h3 className="text-2xl font-bold">{data.title}</h3>
                     <p className="text-muted-foreground">{data.description}</p>
@@ -476,5 +478,3 @@ export default function PregnancyPage() {
     </div>
   )
 }
-
-    
