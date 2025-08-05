@@ -1,5 +1,6 @@
 
-import { auth } from "./firebase";
+
+import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -10,6 +11,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 
 // Re-export the User type for convenience
 export type { User };
@@ -20,7 +22,28 @@ export const signUp = async (email, password, fullName) => {
     throw new Error("Firebase has not been initialized correctly.");
   }
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(userCredential.user, { displayName: fullName });
+  const user = userCredential.user;
+  
+  // Update Firebase Auth profile
+  await updateProfile(user, { displayName: fullName });
+  
+  // Create user document in Firestore
+  if (db) {
+      console.log("Creating user document in Firestore...");
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: fullName,
+        email: user.email,
+        createdAt: new Date(),
+        // Add any other initial data you want to store
+      });
+      console.log("User document created.");
+  }
+  
+  // Send verification email
+  await sendEmailVerification(user);
+  console.log("Verification email sent.");
+
   return userCredential;
 };
 
@@ -53,4 +76,32 @@ export const onAuthChange = (callback) => {
         return () => {};
     }
   return onAuthStateChanged(auth, callback);
+};
+
+export const updateUserProfile = async (data: { displayName?: string }) => {
+    if (!auth?.currentUser) {
+        throw new Error("No user is currently signed in.");
+    }
+    const user = auth.currentUser;
+    const updates: { displayName?: string } = {};
+
+    if (data.displayName) {
+        updates.displayName = data.displayName;
+    }
+    
+    // Update Firebase Auth profile
+    if (Object.keys(updates).length > 0) {
+        await updateProfile(user, updates);
+        console.log("Firebase Auth profile updated.");
+    }
+
+    // Update Firestore document
+    if (db) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+            ...updates,
+            updatedAt: new Date()
+        });
+        console.log("Firestore user document updated.");
+    }
 };

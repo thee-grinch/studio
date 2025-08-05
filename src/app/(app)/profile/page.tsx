@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useEffect } from "react"
 import { Activity, Bell, Palette, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,16 +25,57 @@ import { Switch } from "@/components/ui/switch"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/hooks/use-auth"
+import { updateUserProfile } from "@/lib/auth"
 
 
 export default function ProfilePage() {
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  const handleSave = (section: string) => {
-    toast({
-      title: "Changes Saved!",
-      description: `Your ${section} details have been updated.`,
-    })
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [location, setLocation] = useState("")
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.displayName || "")
+      setEmail(user.email || "")
+      // These would ideally come from the user's firestore document
+      setPhone(user.phoneNumber || "")
+      setLocation("") // Assuming location is not on the auth object
+    }
+  }, [user])
+
+  const handleSave = async (section: string) => {
+    if (!user) {
+        toast({ title: "Error", description: "You must be logged in to update your profile.", variant: "destructive"})
+        return;
+    }
+
+    try {
+        if (section === 'Personal') {
+            await updateUserProfile({
+                displayName: fullName,
+                // email, phone, location can be added here to update firestore
+            })
+            console.log("Personal details updated successfully in Firebase Auth and Firestore.");
+        }
+        // Similar logic for 'Emergency Contact' can be added here
+        
+        toast({
+            title: "Changes Saved!",
+            description: `Your ${section} details have been updated.`,
+        })
+    } catch (error) {
+        console.error(`Error updating ${section}:`, error)
+        toast({
+            title: "Error",
+            description: `Failed to update ${section} details.`,
+            variant: "destructive"
+        })
+    }
   }
   
   return (
@@ -58,21 +100,21 @@ export default function ProfilePage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" defaultValue="Jane Doe" />
+                  <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="jane.doe@example.com" />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled />
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                  <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
-                  <Input id="location" defaultValue="San Francisco, CA" />
+                  <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="San Francisco, CA"/>
                 </div>
               </div>
             </CardContent>
