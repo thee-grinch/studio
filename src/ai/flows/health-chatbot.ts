@@ -1,5 +1,4 @@
 'use server';
-
 /**
  * @fileOverview AI Health Chatbot flow that answers questions about pregnancy and infant health.
  *
@@ -7,7 +6,6 @@
  * - HealthChatbotInput - The input type for the healthChatbot function.
  * - HealthChatbotOutput - The return type for the healthChatbot function.
  */
-
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
@@ -20,11 +18,13 @@ const HealthChatbotInputSchema = z.object({
     })),
   })).optional().describe('The chat history.'),
 });
+
 export type HealthChatbotInput = z.infer<typeof HealthChatbotInputSchema>;
 
 const HealthChatbotOutputSchema = z.object({
   answer: z.string().describe('The answer to the question.'),
 });
+
 export type HealthChatbotOutput = z.infer<typeof HealthChatbotOutputSchema>;
 
 export async function healthChatbot(input: HealthChatbotInput): Promise<HealthChatbotOutput> {
@@ -44,21 +44,15 @@ IMPORTANT:
 Here is the conversation history:
 {{#if history}}
   {{#each history}}
-    {{#if (eq this.role "user")}}You: {{this.content.[0].text}}{{/if}}
-    {{#if (eq this.role "model")}}Mamatoto: {{this.content.[0].text}}{{/if}}
+    {{#if user}}You: {{content.[0].text}}
+    {{else}}Mamatoto: {{content.[0].text}}
+    {{/if}}
   {{/each}}
 {{/if}}
 
 New Question: {{{question}}}
+
 Answer: `,
-  config: {
-    custom: {
-      knownHelpersOnly: false,
-      helpers: {
-        eq: (a: any, b: any) => a === b,
-      },
-    },
-  }
 });
 
 const healthChatbotFlow = ai.defineFlow(
@@ -68,7 +62,18 @@ const healthChatbotFlow = ai.defineFlow(
     outputSchema: HealthChatbotOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    // Transform history to match template expectations
+    const processedInput = {
+      ...input,
+      history: input.history?.map(item => ({
+        ...item,
+        user: item.role === 'user',
+        model: item.role === 'model',
+        content: item.content
+      }))
+    };
+    
+    const {output} = await prompt(processedInput);
     return output!;
   }
 );

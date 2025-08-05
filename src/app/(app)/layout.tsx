@@ -57,6 +57,7 @@ import { CalendarIcon } from "lucide-react"
 import { updateUserProfile } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useUserDocument } from "@/hooks/use-user-document"
+import { addUserSubcollectionDoc } from "@/lib/firestore"
 
 
 const menuItems = [
@@ -91,6 +92,36 @@ function Footer() {
 
 const NewAppointmentModal = () => {
   const { modals, closeModal } = useModalStore();
+  const { toast } = useToast();
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    if (!title || !type || !date) {
+      toast({ title: "Missing Information", description: "Please fill out all fields.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await addUserSubcollectionDoc('appointments', {
+        title,
+        type,
+        date: format(date, 'yyyy-MM-dd'),
+      });
+      toast({ title: "Appointment Scheduled!", description: "Your appointment has been added." });
+      setTitle('');
+      setType('');
+      setDate(new Date());
+      closeModal('newAppointment');
+    } catch (error) {
+      console.error("Error scheduling appointment:", error);
+      toast({ title: "Error", description: "Could not schedule appointment. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={modals.newAppointment} onOpenChange={() => closeModal('newAppointment')}>
@@ -103,20 +134,12 @@ const NewAppointmentModal = () => {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              placeholder="e.g. Glucose Test"
-              className="col-span-3"
-            />
+            <Label htmlFor="title" className="text-right">Title</Label>
+            <Input id="title" placeholder="e.g. Glucose Test" className="col-span-3" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="type" className="text-right">
-              Type
-            </Label>
-            <Select>
+            <Label htmlFor="type" className="text-right">Type</Label>
+            <Select onValueChange={setType} value={type}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -130,12 +153,12 @@ const NewAppointmentModal = () => {
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="pt-2 text-right">Date</Label>
-            <Calendar mode="single" className="col-span-3" />
+            <Calendar mode="single" selected={date} onSelect={setDate} className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => closeModal('newAppointment')}>Cancel</Button>
-          <Button type="submit" onClick={() => closeModal('newAppointment')}>Schedule</Button>
+          <Button type="submit" onClick={handleSave} disabled={loading}>{loading ? 'Scheduling...' : 'Schedule'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -144,6 +167,37 @@ const NewAppointmentModal = () => {
 
 const LogWeightModal = () => {
     const { modals, closeModal } = useModalStore();
+    const { toast } = useToast();
+    const [weight, setWeight] = useState('');
+    const [notes, setNotes] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [loading, setLoading] = useState(false);
+
+    const handleSave = async () => {
+        if (!weight) {
+            toast({ title: "Missing Weight", description: "Please enter your weight.", variant: "destructive" });
+            return;
+        }
+        setLoading(true);
+        try {
+            await addUserSubcollectionDoc('weights', {
+                weight: parseFloat(weight),
+                notes,
+                date,
+            });
+            toast({ title: "Weight Logged!", description: "Your weight has been saved." });
+            setWeight('');
+            setNotes('');
+            setDate(new Date().toISOString().split('T')[0]);
+            closeModal('logWeight');
+        } catch (error) {
+            console.error("Error logging weight:", error);
+            toast({ title: "Error", description: "Could not save weight log. Please try again.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
       <Dialog open={modals.logWeight} onOpenChange={() => closeModal('logWeight')}>
         <DialogContent className="sm:max-w-md">
@@ -154,20 +208,20 @@ const LogWeightModal = () => {
             <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="weight">Weight (lbs)</Label>
-                    <Input id="weight" type="number" placeholder="e.g. 145.5" />
+                    <Input id="weight" type="number" placeholder="e.g. 145.5" value={weight} onChange={(e) => setWeight(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="notes">Notes (optional)</Label>
-                    <Textarea id="notes" placeholder="Feeling great today!"/>
+                    <Textarea id="notes" placeholder="Feeling great today!" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
+                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
             </div>
             <DialogFooter>
                  <Button variant="outline" onClick={() => closeModal('logWeight')}>Cancel</Button>
-                <Button type="submit" onClick={() => closeModal('logWeight')}>Save Log</Button>
+                <Button type="submit" onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save Log'}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
@@ -176,6 +230,42 @@ const LogWeightModal = () => {
 
 const LogSymptomModal = () => {
     const { modals, closeModal } = useModalStore();
+    const { toast } = useToast();
+    const [symptoms, setSymptoms] = useState<Record<string, boolean>>({});
+    const [moods, setMoods] = useState<Record<string, boolean>>({});
+    const [loading, setLoading] = useState(false);
+    
+    const symptomOptions = ["Nausea", "Fatigue", "Back Pain", "Swelling", "Headache", "Cravings"];
+    const moodOptions = ["Happy", "Neutral", "Stressed", "Anxious"];
+
+    const handleCheckboxChange = (type: 'symptom' | 'mood', item: string, checked: boolean) => {
+        const setter = type === 'symptom' ? setSymptoms : setMoods;
+        setter(prev => ({ ...prev, [item]: checked }));
+    };
+
+    const handleSave = async () => {
+        setLoading(true);
+        const selectedSymptoms = Object.keys(symptoms).filter(key => symptoms[key]);
+        const selectedMoods = Object.keys(moods).filter(key => moods[key]);
+
+        try {
+            await addUserSubcollectionDoc('symptoms', {
+                symptoms: selectedSymptoms,
+                moods: selectedMoods,
+                date: new Date().toISOString().split('T')[0],
+            });
+            toast({ title: "Log Saved!", description: "Your symptoms and mood have been recorded." });
+            setSymptoms({});
+            setMoods({});
+            closeModal('logSymptom');
+        } catch (error) {
+            console.error("Error logging symptoms:", error);
+            toast({ title: "Error", description: "Could not save your log. Please try again.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
     <Dialog open={modals.logSymptom} onOpenChange={() => closeModal('logSymptom')}>
         <DialogContent className="sm:max-w-lg">
@@ -187,27 +277,29 @@ const LogSymptomModal = () => {
                 <div className="space-y-4">
                     <Label>Symptoms</Label>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="nausea" /> <Label htmlFor="nausea">Nausea</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="fatigue" /> <Label htmlFor="fatigue">Fatigue</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="back-pain" /> <Label htmlFor="back-pain">Back Pain</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="swelling" /> <Label htmlFor="swelling">Swelling</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="headache" /> <Label htmlFor="headache">Headache</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="cravings" /> <Label htmlFor="cravings">Cravings</Label></div>
+                        {symptomOptions.map(symptom => (
+                            <div className="flex items-center gap-2" key={symptom}>
+                                <Checkbox id={symptom} checked={symptoms[symptom] || false} onCheckedChange={(checked) => handleCheckboxChange('symptom', symptom, !!checked)} />
+                                <Label htmlFor={symptom}>{symptom}</Label>
+                            </div>
+                        ))}
                     </div>
                 </div>
                  <div className="space-y-4">
                     <Label>Mood</Label>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2"><Checkbox id="happy" /> <Label htmlFor="happy">Happy</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="neutral" /> <Label htmlFor="neutral">Neutral</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="stressed" /> <Label htmlFor="stressed">Stressed</Label></div>
-                        <div className="flex items-center gap-2"><Checkbox id="anxious" /> <Label htmlFor="anxious">Anxious</Label></div>
+                        {moodOptions.map(mood => (
+                             <div className="flex items-center gap-2" key={mood}>
+                                <Checkbox id={mood} checked={moods[mood] || false} onCheckedChange={(checked) => handleCheckboxChange('mood', mood, !!checked)} />
+                                <Label htmlFor={mood}>{mood}</Label>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => closeModal('logSymptom')}>Cancel</Button>
-                <Button type="submit" onClick={() => closeModal('logSymptom')}>Save Log</Button>
+                <Button type="submit" onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save Log'}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
@@ -216,6 +308,29 @@ const LogSymptomModal = () => {
 
 const AddNoteModal = () => {
     const { modals, closeModal } = useModalStore();
+    const { toast } = useToast();
+    const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSave = async () => {
+        if (!note) {
+            toast({ title: "Empty Note", description: "Please write something in your note.", variant: "destructive" });
+            return;
+        }
+        setLoading(true);
+        try {
+            await addUserSubcollectionDoc('notes', { content: note });
+            toast({ title: "Note Saved!", description: "Your note has been added." });
+            setNote('');
+            closeModal('addNote');
+        } catch (error) {
+            console.error("Error saving note:", error);
+            toast({ title: "Error", description: "Could not save note. Please try again.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
      <Dialog open={modals.addNote} onOpenChange={() => closeModal('addNote')}>
         <DialogContent className="sm:max-w-md">
@@ -226,12 +341,12 @@ const AddNoteModal = () => {
             <div className="grid gap-4 py-4">
                  <div className="space-y-2">
                     <Label htmlFor="note-content">Note</Label>
-                    <Textarea id="note-content" placeholder="Remember to ask Dr. Smith about the prenatal vitamins." rows={5} />
+                    <Textarea id="note-content" placeholder="Remember to ask Dr. Smith about the prenatal vitamins." rows={5} value={note} onChange={(e) => setNote(e.target.value)} />
                 </div>
             </div>
             <DialogFooter>
                  <Button variant="outline" onClick={() => closeModal('addNote')}>Cancel</Button>
-                <Button type="submit" onClick={() => closeModal('addNote')}>Save Note</Button>
+                <Button type="submit" onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save Note'}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
