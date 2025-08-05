@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
+import { useUserSubcollection } from "@/hooks/use-user-subcollection"
+import { Skeleton } from "@/components/ui/skeleton"
 
 
 const activePregnancy = {
@@ -68,13 +70,6 @@ const weightData = [
   { date: "Wk 13", weight: 144 },
   { date: "Wk 14", weight: 145 },
 ]
-
-const symptomData = [
-    { id: 1, date: "2024-07-10", symptom: "Morning Sickness", mood: "Tired", severity: "Mild"},
-    { id: 2, date: "2024-07-09", symptom: "Fatigue", mood: "Okay", severity: "Moderate"},
-    { id: 3, date: "2024-07-08", symptom: "Cravings (pickles)", mood: "Happy", severity: "Mild"},
-]
-
 
 const appointments = [
   {
@@ -147,6 +142,8 @@ function getWeeksToGo(dueDate: Date) {
 export default function PregnancyPage() {
   const openModal = useModalStore((state) => state.openModal);
   const weeksToGo = getWeeksToGo(activePregnancy.dueDate)
+  const { data: symptomData, loading: symptomsLoading } = useUserSubcollection("symptoms");
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -269,18 +266,37 @@ export default function PregnancyPage() {
                         </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {symptomData.map(log => (
-                        <div key={log.id} className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                            <div>
-                                <p className="font-semibold">{log.symptom}</p>
-                                <p className="text-sm text-muted-foreground">{new Date(log.date).toLocaleDateString()}</p>
+                      {symptomsLoading ? (
+                         Array.from({ length: 3 }).map((_, i) => (
+                          <div key={i} className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-24" />
+                              <Skeleton className="h-4 w-20" />
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant={log.mood === "Happy" ? "default" : "secondary"}>{log.mood}</Badge>
-                                <Badge variant="outline">{log.severity}</Badge>
+                              <Skeleton className="h-6 w-16 rounded-full" />
+                              <Skeleton className="h-6 w-16 rounded-full" />
                             </div>
-                        </div>
-                      ))}
+                          </div>
+                        ))
+                      ) : symptomData && symptomData.length > 0 ? (
+                        symptomData.map(log => (
+                          <div key={log.id} className="flex flex-col sm:flex-row justify-between items-start p-3 bg-muted rounded-lg gap-2">
+                              <div>
+                                <p className="font-semibold">{new Date(log.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {log.symptoms?.length > 0 && <p>Symptoms: {log.symptoms.join(", ")}</p>}
+                                  {log.moods?.length > 0 && <p>Moods: {log.moods.join(", ")}</p>}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap self-end sm:self-center">
+                                  {log.moods?.map((mood: string) => <Badge key={mood} variant="secondary">{mood}</Badge>)}
+                              </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-muted-foreground py-8">No symptoms logged yet.</p>
+                      )}
                     </CardContent>
                 </Card>
             </div>
