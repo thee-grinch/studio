@@ -62,8 +62,8 @@ Your goal is to provide a single, highly relevant, and personalized health tip o
 The user is currently in week {{currentWeek}} of their pregnancy (trimester {{trimester}}).
 
 Analyze the user's recent health data to identify the most important topic to address.
-- Recent Symptoms/Moods: {{#if recentSymptoms}} {{jsonStringify recentSymptoms}} {{else}} No recent symptoms logged. {{/if}}
-- Recent Weight logs (in lbs): {{#if recentWeight}} {{jsonStringify recentWeight}} {{else}} No recent weight logged. {{/if}}
+- Recent Symptoms/Moods: {{#if recentSymptoms}} {{{recentSymptoms}}} {{else}} No recent symptoms logged. {{/if}}
+- Recent Weight logs (in lbs): {{#if recentWeight}} {{{recentWeight}}} {{else}} No recent weight logged. {{/if}}
 
 Based on the data and the current week of pregnancy, generate a concise and actionable tip.
 - If you see a concerning pattern (e.g., a symptom that could be serious, rapid weight change), create an "alert".
@@ -84,7 +84,7 @@ const dashboardTipFlow = ai.defineFlow(
   async (input) => {
     // Genkit's `prompt` helper doesn't have a built-in jsonStringify helper.
     // So we manually stringify the complex objects before passing them to the prompt.
-    const processedInput = {
+    const processedInput: any = {
       ...input,
       recentSymptoms: JSON.stringify(input.recentSymptoms || []),
       recentWeight: JSON.stringify(input.recentWeight || []),
