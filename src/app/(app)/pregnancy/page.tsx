@@ -25,6 +25,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import Image from "next/image"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,7 +52,6 @@ import { useQuery } from "@tanstack/react-query"
 import { getBabyUpdate } from "@/ai/flows/baby-update-flow"
 import { getHealthTips } from "@/ai/flows/health-tips-flow"
 import Link from "next/link"
-import Image from "next/image"
 
 
 const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
@@ -401,7 +401,7 @@ export default function PregnancyPage() {
                         </Button>
                     </CardHeader>
                     <CardContent>
-                         <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                         <ChartContainer config={chartConfig} className="w-full">
                             <ResponsiveContainer>
                                 <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
@@ -504,3 +504,5 @@ export default function PregnancyPage() {
     </div>
   )
 }
+
+    
