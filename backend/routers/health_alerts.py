@@ -8,6 +8,7 @@ from ..schemas.ai import HealthDataRequest, AIHealthAlert
 from ..schemas.symptom_log import SymptomLog
 from ..schemas.weight_log import WeightLog
 from ..schemas.health_alert import HealthAlert  # Assuming you created this schema
+from backend.models.user import User
 
 import google.generativeai as genai
 
@@ -64,7 +65,7 @@ def generate_ai_health_alert(
 @router.get("/", response_model=List[AIHealthAlert])
 def get_health_alerts(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     alerts: List[AIHealthAlert] = []
 

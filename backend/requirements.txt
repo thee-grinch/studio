@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy 
 python-jose[cryptography] 
 python-multipart
+pydantic[email-validator]
+pydantic_settings

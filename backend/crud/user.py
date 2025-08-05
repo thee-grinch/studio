@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from .. import models, schemas
+from backend.schemas.user import UserCreate, UserUpdate
 from typing import Optional
 
 def get_user_by_email(db: Session, email: str):
@@ -8,7 +9,7 @@ def get_user_by_email(db: Session, email: str):
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: UserCreate):
     fake_hashed_password = user.password + "notreallyhashed"
     db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
     db.add(db_user)
@@ -19,7 +20,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
-def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
     db_user = get_user(db, user_id=user_id)
     if db_user:
         update_data = user_update.model_dump(exclude_unset=True)

@@ -27,3 +27,9 @@ class UserInDB(UserBase):
 
     class Config:
         orm_mode = True
+
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+
+    class Config:
+        orm_mode = True

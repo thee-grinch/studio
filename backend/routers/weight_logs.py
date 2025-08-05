@@ -4,9 +4,7 @@ from typing import List
 
 from .. import crud, schemas, models
 from ..database import SessionLocal, engine
-
-models.Base.metadata.create_all(bind=engine)
-
+from backend.schemas.weight_log import WeightLog, WeightLogCreate
 router = APIRouter(
     prefix="/weight-logs",
     tags=["weight-logs"],
@@ -20,16 +18,16 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/", response_model=schemas.WeightLog)
+@router.post("/", response_model=WeightLog)
 def create_weight_log(
-    weight_log: schemas.WeightLogCreate, db: Session = Depends(get_db)
+    weight_log: WeightLogCreate, db: Session = Depends(get_db)
 ):
     # In a real application, you would get the user_id from authentication
     user_id = 1 # Replace with actual user ID from authenticated user
     db_weight_log = crud.weight_log.create_weight_log(db=db, weight_log=weight_log, user_id=user_id)
     return db_weight_log
 
-@router.get("/", response_model=List[schemas.WeightLog])
+@router.get("/", response_model=List[WeightLog])
 def list_weight_logs(db: Session = Depends(get_db)):
     # In a real application, you would get the user_id from authentication
     user_id = 1 # Replace with actual user ID from authenticated user

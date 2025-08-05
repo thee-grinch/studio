@@ -2,8 +2,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
-from .. import schemas, database
+from backend.schemas.user import UserCreate, UserUpdate, UserPublic
+from .. import  database
 from fastapi.security import OAuth2PasswordRequestForm
 from backend.crud import user as user_crud
 from backend.dependencies import get_current_user
@@ -11,8 +11,8 @@ from datetime import timedelta
 
 router = APIRouter()
 
-@router.post("/register", response_model=schemas.User)
-def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+@router.post("/register", response_model=UserPublic)
+def register_user(user: UserCreate, db: Session = Depends(database.get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if user_crud.get_user_by_email(db, email=user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -35,16 +35,16 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/users/me", response_model=schemas.UserPublic)
-def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+@router.get("/users/me", response_model=UserPublic)
+def read_users_me(current_user: UserPublic = Depends(get_current_user)):
     return current_user
 
 
-@router.put("/users/me", response_model=schemas.UserPublic)
+@router.put("/users/me", response_model=UserPublic)
 def update_users_me(
-    user_update: schemas.UserUpdate,
+    user_update: UserUpdate,
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(get_current_user),
+    current_user: UserPublic = Depends(get_current_user),
 ):
     db_user = user_crud.update_user(db=db, user_id=current_user.id, user_update=user_update)
     # Assuming crud.update_user returns the updated user object

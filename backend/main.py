@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from backend.routers import auth, pregnancy, weight_logs, appointments, symptom_logs, health_alerts, contact, chat, ai
-
+from backend.schemas.user import UserCreate, UserUpdate, UserPublic
+from backend.dependencies import get_current_user
 DATABASE_URL = "sqlite:///./sql_app.db"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
