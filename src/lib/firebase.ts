@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -15,7 +16,7 @@ const firebaseConfig: FirebaseOptions = {
 
 // Initialize Firebase only if the API key is provided
 const app =
-  !getApps().length && firebaseConfig.apiKey
+  !getApps().length && process.env.NEXT_PUBLIC_FIREBASE_API_KEY
     ? initializeApp(firebaseConfig)
     : getApps().length > 0
       ? getApp()

@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/logo"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, type FormEvent } from "react"
 import { CalendarIcon, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -29,6 +28,7 @@ import { format } from "date-fns"
 export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [fullName, setFullName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -44,12 +44,14 @@ export default function RegisterPage() {
             setError("Passwords do not match.");
             return;
         }
+        if (!dueDate) {
+            setError("Please select an estimated due date.");
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
-            await signUp(email, password);
-            // In a real app, you would also create a user document in Firestore here
-            // with the additional details like due date.
+            await signUp(email, password, fullName, dueDate);
             toast({
                 title: "Account Created!",
                 description: "Please check your email to verify your account.",
@@ -82,7 +84,13 @@ export default function RegisterPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="full-name">Full Name</Label>
-              <Input id="full-name" placeholder="Jane Doe" required />
+              <Input 
+                id="full-name" 
+                placeholder="Jane Doe" 
+                required 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
             </div>
              <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
