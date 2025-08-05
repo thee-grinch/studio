@@ -77,6 +77,15 @@ export default function DashboardPage() {
     }
   }, [userDocLoading, userDocument, openModal]);
 
+  useEffect(() => {
+    const symptomPromptShown = sessionStorage.getItem('symptomPromptShown');
+    if (!symptomPromptShown) {
+      openModal('logSymptom');
+      sessionStorage.setItem('symptomPromptShown', 'true');
+    }
+  }, [openModal]);
+
+
   const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
 
   if (userDocLoading) {
