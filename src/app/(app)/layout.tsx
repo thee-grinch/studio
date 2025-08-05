@@ -270,7 +270,7 @@ const NewAppointmentModal = () => {
 };
 
 const weightSchema = z.object({
-    weight: z.coerce.number().positive("Weight must be a positive number."),
+    weight: z.coerce.number().positive("Weight must be a positive number.").min(1, "Weight must be greater than zero."),
     notes: z.string().optional(),
     date: z.string().refine(val => !isNaN(Date.parse(val)), "Invalid date format"),
 }).refine(data => new Date(data.date) <= new Date(), {

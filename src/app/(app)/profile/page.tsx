@@ -27,54 +27,70 @@ import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { updateUserProfile } from "@/lib/auth"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
+const personalDetailsSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(/^[a-zA-Z\s]*$/, "Full name can only contain letters and spaces."),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+});
 
 export default function ProfilePage() {
   const { toast } = useToast()
   const { user } = useAuth()
+  const [loading, setLoading] = useState(false);
 
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [location, setLocation] = useState("")
+  const form = useForm<z.infer<typeof personalDetailsSchema>>({
+    resolver: zodResolver(personalDetailsSchema),
+    defaultValues: {
+        fullName: "",
+        email: "",
+        phone: "",
+        location: "",
+    }
+  });
 
   useEffect(() => {
     if (user) {
-      setFullName(user.displayName || "")
-      setEmail(user.email || "")
-      // These would ideally come from the user's firestore document
-      setPhone(user.phoneNumber || "")
-      setLocation("") // Assuming location is not on the auth object
+      form.reset({
+        fullName: user.displayName || "",
+        email: user.email || "",
+        // These would ideally come from the user's firestore document
+        phone: user.phoneNumber || "",
+        location: "", // Assuming location is not on the auth object
+      })
     }
-  }, [user])
+  }, [user, form])
 
-  const handleSave = async (section: string) => {
+  const handleSave = async (values: z.infer<typeof personalDetailsSchema>) => {
     if (!user) {
         toast({ title: "Error", description: "You must be logged in to update your profile.", variant: "destructive"})
         return;
     }
+    setLoading(true);
 
     try {
-        if (section === 'Personal') {
-            await updateUserProfile({
-                displayName: fullName,
-                // email, phone, location can be added here to update firestore
-            })
-            console.log("Personal details updated successfully in Firebase Auth and Firestore.");
-        }
-        // Similar logic for 'Emergency Contact' can be added here
+        await updateUserProfile({
+            displayName: values.fullName,
+        })
         
         toast({
             title: "Changes Saved!",
-            description: `Your ${section} details have been updated.`,
+            description: `Your personal details have been updated.`,
         })
     } catch (error) {
-        console.error(`Error updating ${section}:`, error)
+        console.error(`Error updating personal details:`, error)
         toast({
             title: "Error",
-            description: `Failed to update ${section} details.`,
+            description: `Failed to update personal details.`,
             variant: "destructive"
         })
+    } finally {
+        setLoading(false);
     }
   }
   
@@ -90,37 +106,77 @@ export default function ProfilePage() {
             </p>
           </div>
           <Card>
-            <CardHeader>
-              <CardTitle>Personal Details</CardTitle>
-              <CardDescription>
-                Update your information here. This information is kept private and secure.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled />
-                </div>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="San Francisco, CA"/>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="border-t px-6 py-4">
-              <Button onClick={() => handleSave('Personal')}>Save Personal Details</Button>
-            </CardFooter>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSave)}>
+                    <CardHeader>
+                    <CardTitle>Personal Details</CardTitle>
+                    <CardDescription>
+                        Update your information here. This information is kept private and secure.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Full Name</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input type="email" disabled {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="phone"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phone</FormLabel>
+                                        <FormControl>
+                                            <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Location</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="San Francisco, CA" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="border-t px-6 py-4">
+                        <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Personal Details"}</Button>
+                    </CardFooter>
+                </form>
+            </Form>
           </Card>
           <Card>
             <CardHeader>
