@@ -5,7 +5,8 @@ type ModalType =
   | 'logWeight' 
   | 'logSymptom' 
   | 'emergencyContacts'
-  | 'addNote';
+  | 'addNote'
+  | 'profileSetup';
 
 interface ModalState {
   modals: Record<ModalType, boolean>;
@@ -21,6 +22,7 @@ export const useModalStore = create<ModalState>()((set) => ({
     logSymptom: false,
     emergencyContacts: false,
     addNote: false,
+    profileSetup: false,
   },
   openModal: (type) => set((state) => ({
     modals: { ...state.modals, [type]: true }

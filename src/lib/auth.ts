@@ -78,20 +78,27 @@ export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
 
-export const updateUserProfile = async (data: { displayName?: string }) => {
+export const updateUserProfile = async (data: { displayName?: string; dueDate?: string; weight?: number; }) => {
     if (!auth?.currentUser) {
         throw new Error("No user is currently signed in.");
     }
     const user = auth.currentUser;
-    const updates: { displayName?: string } = {};
+    const updates: { displayName?: string; dueDate?: string; weight?: number } = {};
 
     if (data.displayName) {
         updates.displayName = data.displayName;
     }
+    if (data.dueDate) {
+        updates.dueDate = data.dueDate;
+    }
+    if (data.weight) {
+        updates.weight = data.weight;
+    }
+
     
     // Update Firebase Auth profile
-    if (Object.keys(updates).length > 0) {
-        await updateProfile(user, updates);
+    if (updates.displayName) {
+        await updateProfile(user, { displayName: updates.displayName });
         console.log("Firebase Auth profile updated.");
     }
 
@@ -106,4 +113,3 @@ export const updateUserProfile = async (data: { displayName?: string }) => {
         console.log("Firestore user document created or updated.");
     }
 };
-

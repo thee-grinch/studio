@@ -15,13 +15,9 @@ import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangl
 import Link from "next/link"
 import { useModalStore } from "@/lib/store"
 import { useAuth } from "@/hooks/use-auth"
-
-const pregnancyInfo = {
-  dueDate: "2024-12-25",
-  currentWeek: 14,
-  weeksRemaining: 26,
-  trimester: 2,
-}
+import { useEffect } from "react"
+import { useUserDocument } from "@/hooks/use-user-document"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const upcomingAppointments = [
   { id: 1, type: "Checkup", date: "2024-07-15", time: "10:00 AM", doctor: "Dr. Smith", icon: Stethoscope },
@@ -32,10 +28,79 @@ const urgentAlerts = [
     { id: 1, title: "High Blood Pressure Reading", description: "Your last reading was higher than normal. Please monitor and contact your doctor if it persists."}
 ];
 
+const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
+    if (!dueDateStr) {
+        return {
+            dueDate: new Date(),
+            currentWeek: 0,
+            weeksRemaining: 40,
+            trimester: 1,
+            progressPercentage: 0,
+        };
+    }
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    const totalWeeks = 40;
+    const msInWeek = 1000 * 60 * 60 * 24 * 7;
+    
+    const startDate = new Date(dueDate.getTime() - (totalWeeks * msInWeek));
+    const currentWeek = Math.max(1, Math.ceil((today.getTime() - startDate.getTime()) / msInWeek));
+    const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
+    
+    let trimester = 1;
+    if (currentWeek > 27) {
+        trimester = 3;
+    } else if (currentWeek > 13) {
+        trimester = 2;
+    }
+
+    const progressPercentage = (currentWeek / totalWeeks) * 100;
+
+    return {
+        dueDate,
+        currentWeek,
+        weeksRemaining,
+        trimester,
+        progressPercentage,
+    }
+}
+
+
 export default function DashboardPage() {
   const openModal = useModalStore((state) => state.openModal);
   const { user } = useAuth();
-  const progressPercentage = (pregnancyInfo.currentWeek / 40) * 100;
+  const { userDocument, loading: userDocLoading } = useUserDocument();
+  
+  useEffect(() => {
+    if (!userDocLoading && userDocument && !userDocument.dueDate) {
+        openModal('profileSetup');
+    }
+  }, [userDocLoading, userDocument, openModal]);
+
+  const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
+
+  if (userDocLoading) {
+    return (
+        <div className="flex flex-col gap-6">
+            <div>
+                <Skeleton className="h-8 w-64 mb-2" />
+                <Skeleton className="h-4 w-96" />
+            </div>
+            <Skeleton className="h-64 w-full" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-72 w-full lg:col-span-2" />
+                <Skeleton className="h-72 w-full" />
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,14 +122,14 @@ export default function DashboardPage() {
       <Card className="w-full">
         <CardHeader>
             <CardTitle>Your Journey</CardTitle>
-            <CardDescription>You're {progressPercentage.toFixed(0)}% of the way there!</CardDescription>
+            <CardDescription>{userDocument?.dueDate ? `You're ${pregnancyInfo.progressPercentage.toFixed(0)}% of the way there!` : 'Please complete your profile to track your journey.'}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">Estimated Due Date</p>
-                <p className="text-2xl md:text-4xl font-bold text-primary">{new Date(pregnancyInfo.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-2xl md:text-4xl font-bold text-primary">{userDocument?.dueDate ? pregnancyInfo.dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set'}</p>
             </div>
-            <Progress value={progressPercentage} aria-label={`${progressPercentage.toFixed(0)}% of pregnancy complete`} />
+            <Progress value={pregnancyInfo.progressPercentage} aria-label={`${pregnancyInfo.progressPercentage.toFixed(0)}% of pregnancy complete`} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
                 <div className="p-4 rounded-lg bg-muted">
                     <p className="text-sm text-muted-foreground">Current Week</p>
@@ -102,7 +167,7 @@ export default function DashboardPage() {
                 </Button>
             </Link>
              <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm col-span-2 sm:col-span-1 md:col-span-1" onClick={() => openModal('emergencyContacts')}>
-                <Phone className="w-5 h-5 sm:w-6 sm-h-6" />
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>Emergency</span>
             </Button>
         </CardContent>

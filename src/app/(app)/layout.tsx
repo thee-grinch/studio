@@ -4,6 +4,8 @@
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon, Plus, Weight, HeartPulse, StickyNote, Phone } from "lucide-react"
+import { useState } from "react"
+import { format } from "date-fns"
 
 import {
   SidebarProvider,
@@ -49,6 +51,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { useModalStore } from "@/lib/store"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from "lucide-react"
+import { updateUserProfile } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
+import { useUserDocument } from "@/hooks/use-user-document"
 
 
 const menuItems = [
@@ -258,6 +266,103 @@ const EmergencyModal = () => {
     )
 };
 
+const ProfileSetupModal = () => {
+  const { modals, closeModal } = useModalStore();
+  const { toast } = useToast();
+  const { refreshUserDocument } = useUserDocument();
+  const [dueDate, setDueDate] = useState<Date>();
+  const [weight, setWeight] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    if (!dueDate || !weight) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      await updateUserProfile({
+        dueDate: format(dueDate, 'yyyy-MM-dd'),
+        weight: parseFloat(weight),
+      });
+      toast({
+        title: "Profile Updated!",
+        description: "Your information has been saved.",
+      });
+      await refreshUserDocument();
+      closeModal('profileSetup');
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={modals.profileSetup} onOpenChange={(isOpen) => !isOpen && closeModal('profileSetup')}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Complete Your Profile</DialogTitle>
+          <DialogDescription>
+            A few more details will help us personalize your experience.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="due-date">Estimated Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dueDate ? format(dueDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={setDueDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weight">Current Weight (lbs)</Label>
+            <Input 
+              id="weight" 
+              type="number" 
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="e.g., 145" 
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSave} disabled={loading}>
+            {loading ? 'Saving...' : 'Save & Continue'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const LoadingSkeleton = () => (
   <div className="flex min-h-screen w-full bg-background">
       <div className="fixed inset-y-0 left-0 z-20 hidden h-screen flex-col border-r bg-sidebar md:flex w-[16rem] pb-14 p-4 space-y-4">
@@ -313,6 +418,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <LogSymptomModal />
       <AddNoteModal />
       <EmergencyModal />
+      <ProfileSetupModal />
 
       <div className="flex min-h-screen w-full flex-col bg-background">
         <div className="flex flex-1">
