@@ -20,7 +20,7 @@ const WeightLogSchema = z.object({
     date: z.string(),
 });
 
-export const DashboardTipInputSchema = z.object({
+const DashboardTipInputSchema = z.object({
   currentWeek: z.number().describe('The current week of pregnancy.'),
   trimester: z.number().describe('The current trimester of pregnancy.'),
   recentSymptoms: z
@@ -31,7 +31,7 @@ export const DashboardTipInputSchema = z.object({
 });
 export type DashboardTipInput = z.infer<typeof DashboardTipInputSchema>;
 
-export const DashboardTipOutputSchema = z.object({
+const DashboardTipOutputSchema = z.object({
   title: z
     .string()
     .describe('A short, engaging title for the tip or alert (e.g., "Stay Hydrated!" or "Iron Boost").'),
