@@ -11,7 +11,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 
 // Re-export the User type for convenience
 export type { User };
@@ -98,10 +98,12 @@ export const updateUserProfile = async (data: { displayName?: string }) => {
     // Update Firestore document
     if (db) {
         const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
+        // Use setDoc with merge:true to create or update the document.
+        await setDoc(userDocRef, {
             ...updates,
             updatedAt: new Date()
-        });
-        console.log("Firestore user document updated.");
+        }, { merge: true });
+        console.log("Firestore user document created or updated.");
     }
 };
+
