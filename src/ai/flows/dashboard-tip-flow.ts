@@ -65,13 +65,30 @@ Analyze the user's recent health data to identify the most important topic to ad
 - Recent Symptoms/Moods: {{#if recentSymptoms}} {{{recentSymptoms}}} {{else}} No recent symptoms logged. {{/if}}
 - Recent Weight logs (in lbs): {{#if recentWeight}} {{{recentWeight}}} {{else}} No recent weight logged. {{/if}}
 
-Based on the data and the current week of pregnancy, generate a concise and actionable tip.
+Based on the data and the current stage of pregnancy, generate a concise and actionable tip.
 - If you see a concerning pattern (e.g., a symptom that could be serious, rapid weight change), create an "alert".
 - Otherwise, provide a proactive health "tip" relevant to their current stage.
 - Focus on ONE key takeaway. Do not provide a list of tips.
 - The tone should be supportive and informative, not alarming unless necessary.
-- Prioritize tips related to common week {{currentWeek}} symptoms or upcoming developmental milestones.
-- Ensure the output is formatted as valid JSON that adheres to the output schema.
+
+To ensure variety, please generate tips from a wide range of categories. Here are the categories to consider:
+
+*   **Health and Wellness:**
+    *   **Nutrition:** Hydration, essential nutrients, foods to eat or avoid.
+    *   **Exercise:** Safe activities, stretching, staying active.
+    *   **Physical Discomforts:** Tips for managing common issues like back pain, swelling, or nausea.
+    *   **Sleep:** Advice for getting better rest.
+*   **Emotional and Mental Health:**
+    *   **Moods:** Acknowledging feelings, tips for emotional balance.
+    *   **Stress/Anxiety:** Relaxation techniques, mindfulness.
+    *   **Support System:** Encouragement to connect with partners, friends, or support groups.
+    *   **Affirmations:** Positive statements to boost confidence.
+*   **Practical and Preparatory:**
+    *   **Baby Development:** Interesting facts about the baby's growth for the current week.
+    *   **Planning:** Reminders for hospital bags, birth plans, or preparing the home.
+
+Prioritize tips related to the user's logged data, common week {{currentWeek}} symptoms, or upcoming developmental milestones.
+Ensure the output is formatted as valid JSON that adheres to the output schema.
 `,
 });
 
