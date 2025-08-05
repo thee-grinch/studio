@@ -96,10 +96,12 @@ const NewAppointmentModal = () => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [time, setTime] = useState('10:00');
+  const [doctor, setDoctor] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    if (!title || !type || !date) {
+    if (!title || !type || !date || !time) {
       toast({ title: "Missing Information", description: "Please fill out all fields.", variant: "destructive" });
       return;
     }
@@ -109,11 +111,15 @@ const NewAppointmentModal = () => {
         title,
         type,
         date: format(date, 'yyyy-MM-dd'),
+        time,
+        doctor,
       });
       toast({ title: "Appointment Scheduled!", description: "Your appointment has been added." });
       setTitle('');
       setType('');
       setDate(new Date());
+      setTime('10:00');
+      setDoctor('');
       closeModal('newAppointment');
     } catch (error) {
       console.error("Error scheduling appointment:", error);
@@ -150,6 +156,14 @@ const NewAppointmentModal = () => {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="doctor" className="text-right">Doctor</Label>
+            <Input id="doctor" placeholder="Dr. Smith" className="col-span-3" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="time" className="text-right">Time</Label>
+            <Input id="time" type="time" className="col-span-3" value={time} onChange={(e) => setTime(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="pt-2 text-right">Date</Label>
@@ -615,3 +629,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   )
 }
+
+    

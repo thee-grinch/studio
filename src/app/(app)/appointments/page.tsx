@@ -4,21 +4,16 @@
 import {
   Baby,
   Calendar as CalendarIcon,
-  CalendarCheck,
-  CalendarClock,
-  CalendarPlus,
-  CalendarX,
+  Stethoscope,
+  Utensils,
   ExternalLink,
   MapPin,
   Plus,
-  Stethoscope,
-  Utensils,
-  Lightbulb,
-  AlertTriangle,
   FileText,
   Pencil,
   Trash2,
-  Phone,
+  AlertTriangle,
+  Lightbulb,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,79 +36,36 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
+import { useUserSubcollection } from "@/hooks/use-user-subcollection"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useMemo } from "react"
 
-const allAppointments = [
-  {
-    id: 1,
-    type: "Checkup",
-    date: "2024-07-30",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    icon: Stethoscope,
-    status: "Upcoming",
-    location: "Main Clinic, Room 201",
-  },
-  {
-    id: 2,
-    type: "Ultrasound Scan",
-    date: "2024-08-15",
-    time: "02:30 PM",
-    doctor: "Tech. Johnson",
-    icon: Baby,
-    status: "Upcoming",
-    location: "Imaging Center",
-  },
-  {
-    id: 3,
-    type: "Nutrition Visit",
-    date: "2024-08-22",
-    time: "11:00 AM",
-    doctor: "Dr. Gable",
-    icon: Utensils,
-    status: "Upcoming",
-    location: "Wellness Hub",
-  },
-  {
-    id: 4,
-    type: "Previous Checkup",
-    date: "2024-07-01",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    icon: Stethoscope,
-    status: "Completed",
-    location: "Main Clinic, Room 201",
-  },
-  {
-    id: 5,
-    type: "Glucose Test",
-    date: "2024-06-20",
-    time: "09:00 AM",
-    doctor: "Lab Corp",
-    icon: Stethoscope,
-    status: "Completed",
-    location: "Downtown Lab",
-  },
-  {
-    id: 6,
-    type: "Dental Checkup",
-    date: "2024-06-10",
-    time: "03:00 PM",
-    doctor: "Dr. Adams",
-    icon: Stethoscope,
-    status: "Missed",
-    location: "City Dental",
-  },
-]
+const getIconForType = (type: string) => {
+  switch (type) {
+    case "checkup":
+      return Stethoscope;
+    case "scan":
+      return Baby;
+    case "nutrition":
+      return Utensils;
+    default:
+      return Stethoscope;
+  }
+}
 
-const upcomingAppointments = allAppointments
-  .filter((a) => a.status === "Upcoming")
-  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-const completedAppointments = allAppointments
-  .filter((a) => a.status === "Completed")
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-const missedAppointments = allAppointments
-  .filter((a) => a.status === "Missed")
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+const getStatus = (date: string, time: string) => {
+    const now = new Date();
+    const apptDateTime = new Date(`${date}T${time}`);
+    if (apptDateTime < now) {
+        // This is a simplification. A real app might have an explicit status field.
+        // For now, we'll consider past appointments as "Completed".
+        return "Completed";
+    }
+    // A more complex logic could check if it was missed vs completed.
+    // We are assuming no missed appointments for now if they are in the past.
+    return "Upcoming";
+}
+
 
 const getStatusStyles = (status: string) => {
   switch (status) {
@@ -140,12 +92,12 @@ const getStatusStyles = (status: string) => {
   }
 }
 
-const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointments)[number], children: React.ReactNode }) => (
+const AppointmentDetailsModal = ({ appt, children }: { appt: any, children: React.ReactNode }) => (
     <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle>{appt.type} with {appt.doctor}</DialogTitle>
+                <DialogTitle>{appt.title} with {appt.doctor}</DialogTitle>
                 <DialogDescription>
                     {new Date(appt.date).toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })} at {appt.time}
                 </DialogDescription>
@@ -153,7 +105,7 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
             <div className="space-y-4 py-4">
                 <div className="flex items-center gap-4">
                     <MapPin className="w-5 h-5 text-muted-foreground" />
-                    <a href="#" className="text-primary hover:underline">{appt.location}</a>
+                    <a href="#" className="text-primary hover:underline">{appt.location || 'Location not specified'}</a>
                 </div>
                  <div className="flex items-center gap-4">
                     <Badge variant={getStatusStyles(appt.status).badgeVariant as any}>{appt.status}</Badge>
@@ -178,7 +130,7 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
                   {appt.status === "Upcoming" && <Button variant="destructive" size="sm" className="w-full sm:w-auto"><Trash2 className="mr-2" /> Cancel</Button>}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto"><CalendarPlus className="mr-2" /> Add to Calendar</Button>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto"><CalendarIcon className="mr-2" /> Add to Calendar</Button>
                     {appt.status === "Upcoming" && <Button size="sm" className="w-full sm:w-auto"><Pencil className="mr-2" /> Edit</Button>}
                 </div>
             </DialogFooter>
@@ -190,7 +142,7 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: (typeof allAppointm
 function AppointmentCard({
   appt,
 }: {
-  appt: (typeof allAppointments)[number]
+  appt: any;
 }) {
   const { borderColor, badgeVariant } = getStatusStyles(appt.status)
 
@@ -200,6 +152,7 @@ function AppointmentCard({
   let statusText = appt.status
   if (isToday && appt.status === "Upcoming") statusText = "Today"
   if (isTomorrow && appt.status === "Upcoming") statusText = "Tomorrow"
+  const Icon = getIconForType(appt.type);
 
   return (
     <Card className={`transition-all hover:shadow-md ${borderColor}`}>
@@ -207,10 +160,10 @@ function AppointmentCard({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="rounded-lg bg-muted p-3">
-              <appt.icon className="h-6 w-6 text-muted-foreground" />
+              <Icon className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <CardTitle className="text-lg">{appt.type}</CardTitle>
+              <CardTitle className="text-lg">{appt.title}</CardTitle>
               <CardDescription>With {appt.doctor}</CardDescription>
             </div>
           </div>
@@ -240,7 +193,7 @@ function AppointmentCard({
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 p-4 pt-0">
         <Button variant="outline" size="sm" className="w-full sm:w-auto">
-            <CalendarPlus className="mr-2" />
+            <CalendarIcon className="mr-2" />
             Add to Calendar
         </Button>
         <AppointmentDetailsModal appt={appt}>
@@ -254,8 +207,63 @@ function AppointmentCard({
   )
 }
 
+function AppointmentsLoadingSkeleton() {
+    return (
+        <div className="grid gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                    <CardHeader className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-12 w-12 rounded-lg" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-6 w-40" />
+                                    <Skeleton className="h-4 w-32" />
+                                </div>
+                            </div>
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        <div className="flex items-center justify-between text-sm">
+                            <Skeleton className="h-4 w-48" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end gap-2 p-4 pt-0">
+                        <Skeleton className="h-9 w-36" />
+                        <Skeleton className="h-9 w-32" />
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
+
 export default function AppointmentsPage() {
   const openModal = useModalStore((state) => state.openModal);
+  const { data: appointmentsData, loading: appointmentsLoading } = useUserSubcollection("appointments");
+
+  const processedAppointments = useMemo(() => {
+    if (!appointmentsData) return [];
+    return appointmentsData.map(appt => ({
+        ...appt,
+        status: getStatus(appt.date, appt.time),
+    }));
+  }, [appointmentsData]);
+
+  const upcomingAppointments = processedAppointments
+    .filter((a) => a.status === "Upcoming")
+    .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+  
+  const completedAppointments = processedAppointments
+    .filter((a) => a.status === "Completed")
+    .sort((a, b) => new Date(`${b.date}T${b.time}`).getTime() - new Date(`${a.date}T${a.time}`).getTime());
+
+  // We are not calculating missed appointments for now
+  const missedAppointments: any[] = [];
+  
   const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' });
   const todaysAppointments = upcomingAppointments.filter(appt => new Date(appt.date).toDateString() === today.toDateString());
@@ -284,30 +292,34 @@ export default function AppointmentsPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="upcoming" className="mt-4">
-              <div className="grid gap-4">
-                {upcomingAppointments.length > 0 ? (
-                  upcomingAppointments.map((appt) => (
-                    <AppointmentCard key={appt.id} appt={appt} />
-                  ))
-                ) : (
-                  <p className="py-8 text-center text-muted-foreground">
-                    No upcoming appointments.
-                  </p>
-                )}
-              </div>
+              {appointmentsLoading ? <AppointmentsLoadingSkeleton /> : (
+                <div className="grid gap-4">
+                  {upcomingAppointments.length > 0 ? (
+                    upcomingAppointments.map((appt) => (
+                      <AppointmentCard key={appt.id} appt={appt} />
+                    ))
+                  ) : (
+                    <p className="py-8 text-center text-muted-foreground">
+                      No upcoming appointments.
+                    </p>
+                  )}
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="completed" className="mt-4">
-              <div className="grid gap-4">
-                {completedAppointments.length > 0 ? (
-                  completedAppointments.map((appt) => (
-                    <AppointmentCard key={appt.id} appt={appt} />
-                  ))
-                ) : (
-                  <p className="py-8 text-center text-muted-foreground">
-                    No completed appointments yet.
-                  </p>
+               {appointmentsLoading ? <AppointmentsLoadingSkeleton /> : (
+                  <div className="grid gap-4">
+                    {completedAppointments.length > 0 ? (
+                      completedAppointments.map((appt) => (
+                        <AppointmentCard key={appt.id} appt={appt} />
+                      ))
+                    ) : (
+                      <p className="py-8 text-center text-muted-foreground">
+                        No completed appointments yet.
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
             </TabsContent>
             <TabsContent value="missed" className="mt-4">
               <div className="grid gap-4">

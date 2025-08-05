@@ -44,6 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
 import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useMemo } from "react"
 
 
 const activePregnancy = {
@@ -51,14 +52,6 @@ const activePregnancy = {
   startDate: new Date("2024-03-18"),
   currentWeek: 14,
   trimester: 2,
-}
-
-const nextAppointment = {
-  id: 1,
-  type: "Mid-pregnancy Ultrasound",
-  date: "2024-07-29",
-  time: "02:30 PM",
-  doctor: "Tech. Johnson",
 }
 
 const weightData = [
@@ -69,60 +62,6 @@ const weightData = [
   { date: "Wk 12", weight: 142.5 },
   { date: "Wk 13", weight: 144 },
   { date: "Wk 14", weight: 145 },
-]
-
-const appointments = [
-  {
-    id: 1,
-    type: "Checkup",
-    date: "2024-07-15",
-    time: "10:00 AM",
-    doctor: "Dr. Smith",
-    status: "Upcoming",
-  },
-  {
-    id: 2,
-    type: "Ultrasound Scan",
-    date: "2024-07-29",
-    time: "02:30 PM",
-    doctor: "Tech. Johnson",
-    status: "Upcoming",
-  },
-   {
-    id: 6,
-    type: "Nutrition Visit",
-    date: "2024-08-22",
-    time: "11:00 AM",
-    doctor: "Dr. Gable",
-    status: "Upcoming",
-  },
-  {
-    id: 3,
-    type: "Initial Visit",
-    date: "2024-04-01",
-    time: "09:00 AM",
-    doctor: "Dr. Smith",
-    status: "Completed",
-    summary: "Confirmed pregnancy. Discussed health history and initial advice."
-  },
-  {
-    id: 4,
-    type: "Blood Work",
-    date: "2024-04-15",
-    time: "08:30 AM",
-    doctor: "Lab Quest",
-    status: "Completed",
-    summary: "Standard first trimester blood panel. Results normal."
-  },
-  {
-    id: 5,
-    type: "First Trimester Screening",
-    date: "2024-05-20",
-    time: "11:00 AM",
-    doctor: "Dr. Smith",
-    status: "Completed",
-    summary: "Nuchal translucency scan and blood test. Low risk results."
-  }
 ]
 
 const chartConfig: ChartConfig = {
@@ -143,6 +82,26 @@ export default function PregnancyPage() {
   const openModal = useModalStore((state) => state.openModal);
   const weeksToGo = getWeeksToGo(activePregnancy.dueDate)
   const { data: symptomData, loading: symptomsLoading } = useUserSubcollection("symptoms");
+  const { data: appointmentsData, loading: appointmentsLoading } = useUserSubcollection("appointments");
+  
+  const getStatus = (date: string, time: string) => {
+    const now = new Date();
+    const apptDateTime = new Date(`${date}T${time}`);
+    if (apptDateTime < now) return "Completed";
+    return "Upcoming";
+  }
+
+  const processedAppointments = useMemo(() => {
+    if (!appointmentsData) return [];
+    return appointmentsData.map(appt => ({
+        ...appt,
+        status: getStatus(appt.date, appt.time),
+    }));
+  }, [appointmentsData]);
+
+  const nextAppointment = processedAppointments
+    .filter((a) => a.status === "Upcoming")
+    .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())[0];
 
 
   return (
@@ -208,10 +167,14 @@ export default function PregnancyPage() {
                     <CardTitle>Next Appointment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="font-semibold">{nextAppointment.type}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {new Date(nextAppointment.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {nextAppointment.time}
-                    </p>
+                  {appointmentsLoading ? <Skeleton className="h-10 w-full" /> : nextAppointment ? (
+                    <>
+                      <p className="font-semibold">{nextAppointment.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                          {new Date(nextAppointment.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {nextAppointment.time}
+                      </p>
+                    </>
+                  ) : <p className="text-sm text-muted-foreground">No upcoming appointments.</p>}
                     <Button variant="link" className="p-0 h-auto mt-2">View All</Button>
                 </CardContent>
             </Card>
@@ -371,23 +334,30 @@ export default function PregnancyPage() {
                     </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {appointments.map((appt) => (
-                        <div key={appt.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-muted gap-2">
-                            <div>
-                                <p className="font-semibold">{appt.type}</p>
-                                <p className="text-sm text-muted-foreground">
-                                    {new Date(appt.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {appt.time} with {appt.doctor}
-                                </p>
-                                {appt.status === "Completed" && <p className="text-xs text-muted-foreground mt-1">Summary: {appt.summary}</p>}
+                    {appointmentsLoading ? (
+                        Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
+                    ) : processedAppointments.length > 0 ? (
+                        processedAppointments.map((appt) => (
+                            <div key={appt.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-muted gap-2">
+                                <div>
+                                    <p className="font-semibold">{appt.title}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {new Date(appt.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {appt.time} with {appt.doctor}
+                                    </p>
+                                    {appt.status === "Completed" && <p className="text-xs text-muted-foreground mt-1">Summary: {appt.summary}</p>}
+                                </div>
+                                <Badge variant={appt.status === "Upcoming" ? "default" : "secondary"}>{appt.status}</Badge>
                             </div>
-                            <Badge variant={appt.status === "Upcoming" ? "default" : "secondary"}>{appt.status}</Badge>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p className="text-center text-muted-foreground py-8">No appointments have been scheduled yet.</p>
+                    )}
                 </CardContent>
             </Card>
         </TabsContent>
       </Tabs>
     </div>
   )
-
 }
+
+    

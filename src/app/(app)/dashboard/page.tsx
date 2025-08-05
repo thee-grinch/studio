@@ -22,11 +22,18 @@ import { useQuery } from "@tanstack/react-query"
 import { getDashboardTip } from "@/ai/flows/dashboard-tip-flow"
 import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 
-
-const upcomingAppointments = [
-  { id: 1, type: "Checkup", date: "2024-07-15", time: "10:00 AM", doctor: "Dr. Smith", icon: Stethoscope },
-  { id: 2, type: "Ultrasound Scan", date: "2024-07-29", time: "02:30 PM", doctor: "Tech. Johnson", icon: Baby },
-]
+const getIconForType = (type: string) => {
+  switch (type) {
+    case "checkup":
+      return Stethoscope;
+    case "scan":
+      return Baby;
+    case "nutrition":
+      return Utensils;
+    default:
+      return Stethoscope;
+  }
+}
 
 const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
     if (!dueDateStr) {
@@ -137,9 +144,15 @@ export default function DashboardPage() {
   const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
   const { data: symptoms, loading: symptomsLoading } = useUserSubcollection("symptoms");
   const { data: weights, loading: weightsLoading } = useUserSubcollection("weights");
+  const { data: appointments, loading: appointmentsLoading } = useUserSubcollection("appointments");
+
+  const upcomingAppointments = appointments
+    ?.filter(a => new Date(`${a.date}T${a.time}`) > new Date())
+    .sort((a,b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())
+    .slice(0, 2);
 
 
-  if (userDocLoading || symptomsLoading || weightsLoading) {
+  if (userDocLoading || symptomsLoading || weightsLoading || appointmentsLoading) {
     return (
         <div className="flex flex-col gap-6">
             <div>
@@ -234,25 +247,32 @@ export default function DashboardPage() {
                 <CardDescription>Your next scheduled visits.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {upcomingAppointments.map((appt) => (
-                    <div key={appt.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted">
-                        <div className="bg-primary rounded-lg p-3 flex-shrink-0">
-                            <appt.icon className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <div className="flex-grow">
-                            <p className="font-semibold">{appt.type}</p>
-                            <p className="text-sm text-muted-foreground">
-                                {new Date(appt.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {appt.time}
-                            </p>
-                            <p className="text-sm text-muted-foreground">With {appt.doctor}</p>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" asChild>
-                               <Link href="/appointments"><ExternalLink className="h-5 w-5"/></Link>
-                            </Button>
-                        </div>
-                    </div>
-                ))}
+                {upcomingAppointments && upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.map((appt) => {
+                    const Icon = getIconForType(appt.type);
+                    return (
+                      <div key={appt.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted">
+                          <div className="bg-primary rounded-lg p-3 flex-shrink-0">
+                              <Icon className="w-6 h-6 text-primary-foreground" />
+                          </div>
+                          <div className="flex-grow">
+                              <p className="font-semibold">{appt.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                  {new Date(appt.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {appt.time}
+                              </p>
+                              <p className="text-sm text-muted-foreground">With {appt.doctor}</p>
+                          </div>
+                          <div className="flex gap-2">
+                              <Button variant="ghost" size="icon" asChild>
+                                 <Link href="/appointments"><ExternalLink className="h-5 w-5"/></Link>
+                              </Button>
+                          </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No upcoming appointments.</p>
+                )}
                  <Button variant="link" className="p-0 h-auto" asChild>
                     <Link href="/appointments">View all appointments</Link>
                 </Button>
@@ -273,3 +293,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+    
