@@ -286,7 +286,7 @@ const LogWeightModal = () => {
     const form = useForm<z.infer<typeof weightSchema>>({
         resolver: zodResolver(weightSchema),
         defaultValues: {
-            weight: undefined,
+            weight: "" as any,
             notes: "",
             date: new Date().toISOString().split('T')[0],
         },
@@ -649,7 +649,7 @@ const ProfileSetupModal = () => {
   const form = useForm<z.infer<typeof profileSetupSchema>>({
     resolver: zodResolver(profileSetupSchema),
     defaultValues: {
-      weight: undefined,
+      weight: "" as any,
     },
   });
 
