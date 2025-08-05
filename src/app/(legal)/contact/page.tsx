@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto py-12 sm:py-16">
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl">Contact Us</CardTitle>

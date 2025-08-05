@@ -313,7 +313,11 @@ const LogWeightModal = () => {
 
     const onOpenChange = (open: boolean) => {
         if (!open) {
-            form.reset();
+            form.reset({
+                weight: '',
+                notes: '',
+                date: new Date().toISOString().split('T')[0]
+            });
             closeModal('logWeight');
         }
     }
@@ -681,7 +685,9 @@ const ProfileSetupModal = () => {
   
   const onOpenChange = (open: boolean) => {
     if(!open) {
-      form.reset();
+      form.reset({
+        weight: '',
+      });
       closeModal('profileSetup');
     }
   }
@@ -889,7 +895,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Footer />
       </div>
     </SidebarProvider>
   )

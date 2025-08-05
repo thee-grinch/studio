@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function TermsOfServicePage() {
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto py-12 sm:py-16">
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl">Terms of Service</CardTitle>
