@@ -45,14 +45,46 @@ import { useModalStore } from "@/lib/store"
 import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useMemo } from "react"
+import { useUserDocument } from "@/hooks/use-user-document"
+import { useQuery } from "@tanstack/react-query"
+import { getBabyUpdate } from "@/ai/flows/baby-update-flow"
+import { getHealthTips } from "@/ai/flows/health-tips-flow"
 
 
-const activePregnancy = {
-  dueDate: new Date("2024-12-25"),
-  startDate: new Date("2024-03-18"),
-  currentWeek: 14,
-  trimester: 2,
+const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
+    if (!dueDateStr) {
+        return {
+            dueDate: new Date(),
+            currentWeek: 0,
+            weeksRemaining: 40,
+            trimester: 1,
+            progressPercentage: 0,
+        };
+    }
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    const totalWeeks = 40;
+    const msInWeek = 1000 * 60 * 60 * 24 * 7;
+    
+    const startDate = new Date(dueDate.getTime() - (totalWeeks * msInWeek));
+    const currentWeek = Math.max(1, Math.ceil((today.getTime() - startDate.getTime()) / msInWeek));
+    const weeksRemaining = Math.max(0, totalWeeks - currentWeek);
+    
+    let trimester = 1;
+    if (currentWeek > 27) {
+        trimester = 3;
+    } else if (currentWeek > 13) {
+        trimester = 2;
+    }
+
+    return {
+        dueDate,
+        currentWeek,
+        weeksRemaining,
+        trimester,
+    }
 }
+
 
 const weightData = [
   { date: "Wk 8", weight: 140 },
@@ -71,19 +103,126 @@ const chartConfig: ChartConfig = {
   },
 }
 
-function getWeeksToGo(dueDate: Date) {
-  const today = new Date()
-  const diffTime = dueDate.getTime() - today.getTime()
-  const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7))
-  return diffWeeks
+const getIconForCategory = (category: string) => {
+    switch (category) {
+        case "Nutrition":
+            return Utensils;
+        case "Exercise":
+            return HeartPulse;
+        case "Emotional Wellness":
+            return ClipboardList;
+        default:
+            return Utensils;
+    }
+};
+
+function BabyUpdatesTab({ currentWeek }: { currentWeek: number }) {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['babyUpdate', currentWeek],
+        queryFn: () => getBabyUpdate({ currentWeek }),
+        enabled: currentWeek > 0,
+    });
+
+    if (isLoading) {
+        return (
+             <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/2" />
+                </CardHeader>
+                <CardContent className="flex flex-col md:flex-row gap-6 items-center">
+                     <Skeleton className="w-full h-64 md:w-1/3 rounded-lg" />
+                    <div className="space-y-4 flex-1">
+                        <Skeleton className="h-10 w-3/4" />
+                        <Skeleton className="h-16 w-full" />
+                         <Skeleton className="h-6 w-1/2" />
+                    </div>
+                </CardContent>
+           </Card>
+        );
+    }
+    
+    if (isError || !data) return <p>Could not load baby updates at this time.</p>;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Week {currentWeek}: Baby Updates</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row gap-6 items-center">
+                 <img src={`https://placehold.co/400x400.png`} data-ai-hint={data.imageHint} alt={data.title} className="w-full md:w-1/3 rounded-lg" />
+                <div className="space-y-4">
+                    <h3 className="text-2xl font-bold">{data.title}</h3>
+                    <p className="text-muted-foreground">{data.description}</p>
+                     <Button variant="link" className="p-0 h-auto">
+                        <BookOpen className="mr-2 h-4 w-4" />
+                        Read more about fetal development
+                    </Button>
+                </div>
+            </CardContent>
+           </Card>
+    );
 }
+
+function HealthTipsTab({ currentWeek }: { currentWeek: number }) {
+     const { data, isLoading, isError } = useQuery({
+        queryKey: ['healthTips', currentWeek],
+        queryFn: () => getHealthTips({ currentWeek }),
+        enabled: currentWeek > 0,
+    });
+
+     if (isLoading) {
+        return (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({length: 3}).map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader className="flex items-center gap-4">
+                             <Skeleton className="w-12 h-12 rounded-lg" />
+                            <Skeleton className="w-32 h-6" />
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                           <Skeleton className="h-12 w-full" />
+                           <Skeleton className="h-5 w-24" />
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        )
+     }
+
+     if (isError || !data) return <p>Could not load health tips at this time.</p>;
+
+    return (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {data.tips.map((tip) => {
+                const Icon = getIconForCategory(tip.category);
+                return (
+                    <Card key={tip.category}>
+                        <CardHeader className="flex items-center gap-4">
+                             <div className="bg-primary rounded-lg p-3 flex-shrink-0">
+                                <Icon className="w-6 h-6 text-primary-foreground" />
+                            </div>
+                            <CardTitle>{tip.category}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground">{tip.tip}</p>
+                            <Button variant="link" className="p-0 h-auto mt-2">Learn more</Button>
+                        </CardContent>
+                    </Card>
+                );
+            })}
+        </div>
+    )
+}
+
 
 export default function PregnancyPage() {
   const openModal = useModalStore((state) => state.openModal);
-  const weeksToGo = getWeeksToGo(activePregnancy.dueDate)
+  const { userDocument, loading: userDocLoading } = useUserDocument();
   const { data: symptomData, loading: symptomsLoading } = useUserSubcollection("symptoms");
   const { data: appointmentsData, loading: appointmentsLoading } = useUserSubcollection("appointments");
   
+  const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
+
   const getStatus = (date: string, time: string) => {
     const now = new Date();
     const apptDateTime = new Date(`${date}T${time}`);
@@ -103,6 +242,8 @@ export default function PregnancyPage() {
     .filter((a) => a.status === "Upcoming")
     .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())[0];
 
+
+  if (userDocLoading) return <div>Loading...</div>
 
   return (
     <div className="flex flex-col gap-6">
@@ -128,21 +269,24 @@ export default function PregnancyPage() {
                 <CardHeader>
                     <CardTitle className="text-center">Your Journey</CardTitle>
                     <CardDescription className="text-center">
-                        You’re {activePregnancy.currentWeek} weeks pregnant – entering the {activePregnancy.trimester}nd trimester!
+                       {pregnancyInfo.currentWeek > 0 
+                        ? `You’re ${pregnancyInfo.currentWeek} weeks pregnant – entering the ${pregnancyInfo.trimester}${pregnancyInfo.trimester === 1 ? 'st' : pregnancyInfo.trimester === 2 ? 'nd' : 'rd'} trimester!`
+                        : "Update your profile to start your journey."
+                       }
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 sm:grid-cols-3">
                     <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Due Date</p>
-                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
+                        <p className="text-xl sm:text-2xl font-bold">{pregnancyInfo.dueDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
                     </div>
                      <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Time to Go</p>
-                        <p className="text-xl sm:text-2xl font-bold">{weeksToGo} weeks</p>
+                        <p className="text-xl sm:text-2xl font-bold">{pregnancyInfo.weeksRemaining} weeks</p>
                     </div>
                     <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">Trimester</p>
-                        <p className="text-xl sm:text-2xl font-bold">{activePregnancy.trimester}</p>
+                        <p className="text-xl sm:text-2xl font-bold">{pregnancyInfo.trimester}</p>
                     </div>
                 </CardContent>
              </Card>
@@ -266,63 +410,11 @@ export default function PregnancyPage() {
         </TabsContent>
 
         <TabsContent value="baby" className="mt-6">
-           <Card>
-            <CardHeader>
-                <CardTitle>Week 14: Baby Updates</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col md:flex-row gap-6 items-center">
-                 <img src="https://placehold.co/400x400.png" data-ai-hint="lemon fruit" alt="Baby size of lemon" className="w-full md:w-1/3 rounded-lg" />
-                <div className="space-y-4">
-                    <h3 className="text-2xl font-bold">Your baby is the size of a lemon!</h3>
-                    <p className="text-muted-foreground">This week, your little one is starting to grow fine hair called lanugo all over their body. They're also practicing breathing, swallowing, and sucking motions. Their unique fingerprints are now formed on their tiny fingers and toes.</p>
-                     <Button variant="link" className="p-0 h-auto">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Read more about fetal development
-                    </Button>
-                </div>
-            </CardContent>
-           </Card>
+           <BabyUpdatesTab currentWeek={pregnancyInfo.currentWeek} />
         </TabsContent>
 
         <TabsContent value="tips" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex items-center gap-4">
-                         <div className="bg-primary rounded-lg p-3 flex-shrink-0">
-                            <Utensils className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <CardTitle>Nutrition</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">AI Assistant: In the second trimester, focus on iron-rich foods like spinach and lean red meat to support increased blood volume.</p>
-                        <Button variant="link" className="p-0 h-auto mt-2">Learn more</Button>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex items-center gap-4">
-                         <div className="bg-primary rounded-lg p-3 flex-shrink-0">
-                            <HeartPulse className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <CardTitle>Exercise</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                         <p className="text-sm text-muted-foreground">Gentle exercises like prenatal yoga or swimming are great for maintaining strength and flexibility. Aim for 30 minutes most days.</p>
-                          <Button variant="link" className="p-0 h-auto mt-2">Find routines</Button>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex items-center gap-4">
-                         <div className="bg-primary rounded-lg p-3 flex-shrink-0">
-                            <ClipboardList className="w-6 h-6 text-primary-foreground" />
-                        </div>
-                        <CardTitle>Emotional Wellness</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                         <p className="text-sm text-muted-foreground">It's normal to feel a mix of emotions. Consider journaling or talking to a friend. Our chatbot is also here to listen.</p>
-                          <Button variant="link" className="p-0 h-auto mt-2">Chat now</Button>
-                    </CardContent>
-                </Card>
-            </div>
+            <HealthTipsTab currentWeek={pregnancyInfo.currentWeek} />
         </TabsContent>
 
         <TabsContent value="appointments" className="mt-6">
@@ -359,5 +451,3 @@ export default function PregnancyPage() {
     </div>
   )
 }
-
-    
