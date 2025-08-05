@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangle, CalendarPlus, MessageCircle, HeartPulse, Weight, Phone, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { useModalStore } from "@/lib/store"
+import { useAuth } from "@/hooks/use-auth"
 
 const pregnancyInfo = {
   dueDate: "2024-12-25",
@@ -33,12 +34,13 @@ const urgentAlerts = [
 
 export default function DashboardPage() {
   const openModal = useModalStore((state) => state.openModal);
+  const { user } = useAuth();
   const progressPercentage = (pregnancyInfo.currentWeek / 40) * 100;
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, Jane!</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome, {user?.displayName || 'there'}!</h1>
         <p className="text-muted-foreground">You're doing great! Here's your personalized update.</p>
       </div>
 
@@ -100,7 +102,7 @@ export default function DashboardPage() {
                 </Button>
             </Link>
              <Button variant="destructive" className="flex flex-col h-20 gap-1 text-xs sm:text-sm col-span-2 sm:col-span-1 md:col-span-1" onClick={() => openModal('emergencyContacts')}>
-                <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Phone className="w-5 h-5 sm:w-6 sm-h-6" />
                 <span>Emergency</span>
             </Button>
         </CardContent>
