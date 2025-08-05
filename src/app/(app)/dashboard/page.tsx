@@ -70,11 +70,16 @@ const PersonalizedTip = ({ pregnancyInfo, symptoms, weights }: { pregnancyInfo: 
         queryKey: ['dashboardTip', pregnancyInfo.currentWeek],
         queryFn: async () => {
             if (pregnancyInfo.currentWeek === 0) return null;
+
+            // Convert Firestore Timestamps to serializable strings
+            const plainSymptoms = symptoms.slice(0, 5).map(s => ({...s, createdAt: s.createdAt?.toDate ? s.createdAt.toDate().toISOString() : s.createdAt}));
+            const plainWeights = weights.slice(0, 5).map(w => ({...w, createdAt: w.createdAt?.toDate ? w.createdAt.toDate().toISOString() : w.createdAt}));
+
             return getDashboardTip({
                 currentWeek: pregnancyInfo.currentWeek,
                 trimester: pregnancyInfo.trimester,
-                recentSymptoms: symptoms.slice(0, 5), // Get latest 5
-                recentWeight: weights.slice(0, 5),
+                recentSymptoms: plainSymptoms,
+                recentWeight: plainWeights,
             })
         },
         enabled: pregnancyInfo.currentWeek > 0, // Only run if pregnancy has started

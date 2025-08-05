@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a personalized health tip for the user's dashboard.
@@ -13,11 +14,13 @@ const SymptomLogSchema = z.object({
   symptoms: z.array(z.string()).optional(),
   moods: z.array(z.string()).optional(),
   date: z.string(),
+  createdAt: z.string().optional(), // Expect a string now
 });
 
 const WeightLogSchema = z.object({
     weight: z.number(),
     date: z.string(),
+    createdAt: z.string().optional(), // Expect a string now
 });
 
 const DashboardTipInputSchema = z.object({
