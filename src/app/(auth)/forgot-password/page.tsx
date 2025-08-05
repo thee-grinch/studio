@@ -13,31 +13,41 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Logo } from "@/components/logo"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { resetPassword } from "@/lib/auth"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+});
 
 export default function ForgotPasswordPage() {
     const [emailSent, setEmailSent] = useState(false)
-    const [email, setEmail] = useState("")
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
     const { toast } = useToast()
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!email) return;
+    const form = useForm<z.infer<typeof forgotPasswordSchema>>({
+      resolver: zodResolver(forgotPasswordSchema),
+      defaultValues: {
+        email: "",
+      },
+    });
+
+    const handleSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
         setLoading(true);
-        setError(null);
         try {
-            await resetPassword(email);
+            await resetPassword(values.email);
             setEmailSent(true);
             toast({
                 title: "Reset Link Sent!",
                 description: "Check your email for instructions to reset your password.",
             });
         } catch (err: any) {
-            setError(err.message || "Failed to send reset email. Please try again.");
+            form.setError("email", { type: "manual", message: "Failed to send reset email. Please try again." });
         } finally {
             setLoading(false);
         }
@@ -63,23 +73,30 @@ export default function ForgotPasswordPage() {
                     <Button onClick={() => setEmailSent(false)} variant="outline">Try a different email</Button>
                  </div>
             ) : (
-                <form onSubmit={handleSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="you@example.com"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    {error && <p className="text-sm text-destructive">{error}</p>}
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? 'Sending...' : 'Send Reset Link'}
-                    </Button>
-                </form>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleSubmit)} className="grid gap-4">
+                      <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Email</FormLabel>
+                                  <FormControl>
+                                      <Input
+                                          type="email"
+                                          placeholder="you@example.com"
+                                          {...field}
+                                      />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <Button type="submit" className="w-full" disabled={loading}>
+                          {loading ? 'Sending...' : 'Send Reset Link'}
+                      </Button>
+                  </form>
+                </Form>
             )}
             <div className="mt-4 text-center text-sm">
                 Remember your password?{" "}
