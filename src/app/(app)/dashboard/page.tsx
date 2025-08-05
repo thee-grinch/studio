@@ -11,22 +11,22 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangle, CalendarPlus, MessageCircle, HeartPulse, Weight, Phone, ExternalLink } from "lucide-react"
+import { Baby, Calendar, Stethoscope, Utensils, Target, TrendingUp, AlertTriangle, CalendarPlus, MessageCircle, HeartPulse, Weight, Phone, ExternalLink, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useModalStore } from "@/lib/store"
 import { useAuth } from "@/hooks/use-auth"
 import { useEffect } from "react"
 import { useUserDocument } from "@/hooks/use-user-document"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useQuery } from "@tanstack/react-query"
+import { getDashboardTip } from "@/ai/flows/dashboard-tip-flow"
+import { useUserSubcollection } from "@/hooks/use-user-subcollection"
+
 
 const upcomingAppointments = [
   { id: 1, type: "Checkup", date: "2024-07-15", time: "10:00 AM", doctor: "Dr. Smith", icon: Stethoscope },
   { id: 2, type: "Ultrasound Scan", date: "2024-07-29", time: "02:30 PM", doctor: "Tech. Johnson", icon: Baby },
 ]
-
-const urgentAlerts = [
-    { id: 1, title: "High Blood Pressure Reading", description: "Your last reading was higher than normal. Please monitor and contact your doctor if it persists."}
-];
 
 const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
     if (!dueDateStr) {
@@ -65,6 +65,49 @@ const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
     }
 }
 
+const PersonalizedTip = ({ pregnancyInfo, symptoms, weights }: { pregnancyInfo: ReturnType<typeof calculatePregnancyInfo>, symptoms: any[], weights: any[] }) => {
+    const { data: tip, isLoading, isError, refetch, isFetching } = useQuery({
+        queryKey: ['dashboardTip', pregnancyInfo.currentWeek],
+        queryFn: async () => {
+            if (pregnancyInfo.currentWeek === 0) return null;
+            return getDashboardTip({
+                currentWeek: pregnancyInfo.currentWeek,
+                trimester: pregnancyInfo.trimester,
+                recentSymptoms: symptoms.slice(0, 5), // Get latest 5
+                recentWeight: weights.slice(0, 5),
+            })
+        },
+        enabled: pregnancyInfo.currentWeek > 0, // Only run if pregnancy has started
+        staleTime: 1000 * 60 * 60, // 1 hour
+        refetchOnWindowFocus: false,
+    });
+
+    if (isLoading) {
+        return <Skeleton className="h-24 w-full" />
+    }
+
+    if (isError || !tip) {
+        return null; // Don't show anything on error or if no tip
+    }
+
+    return (
+        <Alert variant={tip.isUrgent ? "destructive" : "default"} className={tip.isUrgent ? "border-red-500/50 text-red-500 dark:border-red-500 [&>svg]:text-red-500" : ""}>
+            <div className="flex items-start justify-between">
+                <div>
+                    <div className="flex items-center gap-2">
+                         {tip.isUrgent && <AlertTriangle className="h-4 w-4" />}
+                        <AlertTitle>{tip.title}</AlertTitle>
+                    </div>
+                    <AlertDescription>{tip.description}</AlertDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching}>
+                    <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+                </Button>
+            </div>
+        </Alert>
+    )
+}
+
 
 export default function DashboardPage() {
   const openModal = useModalStore((state) => state.openModal);
@@ -87,14 +130,18 @@ export default function DashboardPage() {
 
 
   const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
+  const { data: symptoms, loading: symptomsLoading } = useUserSubcollection("symptoms");
+  const { data: weights, loading: weightsLoading } = useUserSubcollection("weights");
 
-  if (userDocLoading) {
+
+  if (userDocLoading || symptomsLoading || weightsLoading) {
     return (
         <div className="flex flex-col gap-6">
             <div>
                 <Skeleton className="h-8 w-64 mb-2" />
                 <Skeleton className="h-4 w-96" />
             </div>
+            <Skeleton className="h-24 w-full" />
             <Skeleton className="h-64 w-full" />
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 <Skeleton className="h-20 w-full" />
@@ -118,15 +165,7 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">You're doing great! Here's your personalized update.</p>
       </div>
 
-      {urgentAlerts.length > 0 && (
-        <Alert variant="destructive" className="border-red-500/50 text-red-500 dark:border-red-500 [&>svg]:text-red-500">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{urgentAlerts[0].title}</AlertTitle>
-            <AlertDescription>
-                {urgentAlerts[0].description}
-            </AlertDescription>
-        </Alert>
-      )}
+      <PersonalizedTip pregnancyInfo={pregnancyInfo} symptoms={symptoms} weights={weights} />
       
       <Card className="w-full">
         <CardHeader>
