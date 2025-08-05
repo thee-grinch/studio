@@ -2,11 +2,11 @@
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Baby, Bot, CalendarCheck, HeartPulse, Sparkles, UserCheck } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { DynamicPexelsImage } from "@/components/dynamic-pexels-image"
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
   const Icon = icon
@@ -25,14 +25,14 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ElementType, ti
   )
 }
 
-const TestimonialCard = ({ name, role, quote, avatarSrc, avatarHint }: { name: string, role: string, quote: string, avatarSrc: string, avatarHint: string }) => (
+const TestimonialCard = ({ name, role, quote, avatarHint }: { name: string, role: string, quote: string, avatarHint: string }) => (
   <Card className="flex flex-col justify-between">
     <CardContent className="pt-6">
       <p className="text-muted-foreground italic">"{quote}"</p>
     </CardContent>
     <div className="p-6 pt-0 flex items-center gap-4">
       <Avatar>
-        <AvatarImage src={avatarSrc} alt={name} data-ai-hint={avatarHint} />
+        <DynamicPexelsImage hint={avatarHint} alt={name} className="h-10 w-10" />
         <AvatarFallback>{name.charAt(0)}</AvatarFallback>
       </Avatar>
       <div>
@@ -88,14 +88,13 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex justify-center">
-              <Image
-                src="https://placehold.co/600x400.png"
-                width={600}
-                height={400}
-                alt="Happy pregnant African woman using the app"
-                data-ai-hint="happy pregnant african woman"
-                className="rounded-xl shadow-2xl"
-              />
+              <div className="relative w-[600px] h-[400px] rounded-xl shadow-2xl overflow-hidden">
+                <DynamicPexelsImage
+                  hint="happy pregnant african woman"
+                  alt="Happy pregnant African woman using the app"
+                  className="w-full h-full"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -189,21 +188,18 @@ export default function LandingPage() {
                 name="Jessica P."
                 role="First-Time Mom"
                 quote="This app was my go-to for everything. The AI chatbot was so reassuring for all my late-night questions. I felt so much more confident."
-                avatarSrc="https://placehold.co/100x100.png"
                 avatarHint="african woman face"
               />
               <TestimonialCard
                 name="Maria G."
                 role="Mother of Two"
                 quote="I wish I had Mamatoto for my first pregnancy! Tracking everything in one place made it so much easier to manage, especially with another child to look after."
-                avatarSrc="https://placehold.co/100x100.png"
                 avatarHint="kenyan woman"
               />
               <TestimonialCard
                 name="Sarah L."
                 role="Soon-to-be Mom"
                 quote="The weekly updates are my favorite part. Seeing how my baby is growing and what to expect each week is magical. I recommend it to all my pregnant friends!"
-                avatarSrc="https://placehold.co/100x100.png"
                 avatarHint="nigerian woman face"
               />
             </div>
