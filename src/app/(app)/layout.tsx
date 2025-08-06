@@ -612,9 +612,9 @@ const AddNoteModal = () => {
 };
 
 const contactSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  relationship: z.string().min(2, "Relationship must be at least 2 characters."),
-  phone: z.string().min(10, "Please enter a valid phone number."),
+  name: z.string().min(2, "Name must be at least 2 characters.").regex(/^[a-zA-Z\s]*$/, "Name can only contain letters."),
+  relationship: z.string().min(2, "Relationship must be at least 2 characters.").regex(/^[a-zA-Z\s]*$/, "Relationship can only contain letters."),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number (e.g., +1234567890)."),
 });
 
 
@@ -698,7 +698,7 @@ const AddEmergencyContactModal = () => {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="e.g., +1 (555) 123-4567" {...field} />
+                    <Input type="tel" placeholder="e.g., +15551234567" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
