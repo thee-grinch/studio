@@ -95,7 +95,7 @@ const getStatusStyles = (status: string) => {
   }
 }
 
-const AppointmentDetailsModal = ({ appt, onAddToCalendar, isAddingToCalendar }: { appt: any, children: React.ReactNode, onAddToCalendar: (appt: any) => void, isAddingToCalendar: boolean }) => (
+const AppointmentDetailsModal = ({ appt, children, onAddToCalendar, isAddingToCalendar }: { appt: any, children: React.ReactNode, onAddToCalendar: (appt: any) => void, isAddingToCalendar: boolean }) => (
     <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
