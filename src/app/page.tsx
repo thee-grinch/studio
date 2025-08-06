@@ -92,7 +92,7 @@ export default function LandingPage() {
             <div className="flex justify-center">
               <div className="relative w-[600px] h-[400px] rounded-xl shadow-2xl overflow-hidden">
                 <Image
-                  src="/hero-image.png"
+                  src="/hero-image.jpg"
                   alt="Happy pregnant African mother using the app"
                   fill
                   className="object-cover"
