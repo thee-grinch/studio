@@ -48,10 +48,8 @@ export default function ChatbotPage() {
     setIsLoading(true)
 
     try {
-      const history = newMessages.slice(0, -1).map(msg => ({
-        ...msg,
-        role: msg.role === 'model' ? 'model' : 'user'
-      }));
+      // Pass the previous messages as history, excluding the greeting
+      const history = newMessages.slice(1, -1);
 
       const inputForAI: HealthChatbotInput = { 
         question: currentInput,
@@ -102,7 +100,10 @@ export default function ChatbotPage() {
                       : "bg-muted"
                   }`}
                 >
-                  {message.content[0].text}
+                  {/* Split the answer by newlines and render each line in a paragraph */}
+                  {message.content[0].text.split('\n').map((line, i) => (
+                      <p key={i}>{line}</p>
+                  ))}
                 </div>
                 {message.role === "user" && (
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
