@@ -57,7 +57,9 @@ export default function ForgotPasswordPage() {
     <Card className="mx-auto w-full max-w-sm">
         <CardHeader className="space-y-4 text-center">
             <div className="flex justify-center">
-                <Logo />
+                <Link href="/">
+                    <Logo />
+                </Link>
             </div>
             <CardTitle className="text-2xl">Account Recovery</CardTitle>
             <CardDescription>

@@ -43,7 +43,9 @@ export default function VerifyEmailPage() {
     <Card className="mx-auto max-w-md w-full text-center">
         <CardHeader className="space-y-4">
             <div className="flex justify-center">
-                <Logo />
+                <Link href="/">
+                    <Logo />
+                </Link>
             </div>
             <CardTitle className="text-2xl">One More Step!</CardTitle>
             <CardDescription>
