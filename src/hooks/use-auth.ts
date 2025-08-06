@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { onAuthChange, type User, signInWithGoogle, CALENDAR_SCOPE } from '@/lib/auth';
+import { onAuthChange, type User, signInWithGoogle } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { getAdditionalUserInfo, getRedirectResult } from 'firebase/auth';
 import { useToast } from './use-toast';
 
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
@@ -27,12 +26,6 @@ export function useAuth() {
   const handleGoogleSignInForCalendar = async () => {
     try {
       const result = await signInWithGoogle();
-      const details = getAdditionalUserInfo(result);
-      if (details?.isNewUser) {
-        toast({ title: "Account Linked!", description: "Your Google account is now linked." });
-      } else {
-        toast({ title: "Signed In!", description: "Successfully signed in with Google."});
-      }
       return result;
     } catch (error: any) {
       console.error("Google Sign-In Error", error);

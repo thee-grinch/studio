@@ -40,8 +40,7 @@ import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useMemo, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
-import { GoogleAuthProvider, OAuthProvider } from "firebase/auth"
-import { CALENDAR_SCOPE } from "@/lib/auth"
+import { OAuthProvider } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
 
 const getIconForType = (type: string) => {
@@ -261,13 +260,13 @@ export default function AppointmentsPage() {
   const handleAddToCalendar = async (appointment: any) => {
       setIsAddingToCalendar(true);
       try {
-          const credential = await handleGoogleSignInForCalendar();
-          if (!credential) {
+          const result = await handleGoogleSignInForCalendar();
+          if (!result) {
               throw new Error("Google Sign-In was cancelled or failed.");
           }
           
-          const credentialHelper = OAuthProvider.credentialFromResult(credential);
-          const accessToken = credentialHelper?.accessToken;
+          const credential = OAuthProvider.credentialFromResult(result);
+          const accessToken = credential?.accessToken;
 
           if (!accessToken) {
               throw new Error("Could not retrieve access token from Google.");
