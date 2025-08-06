@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon, Plus, Weight, HeartPulse, StickyNote, Phone } from "lucide-react"
+import { Baby, CalendarDays, LayoutGrid, MessageSquare, User as UserIcon, Plus, Weight, HeartPulse, StickyNote, Phone, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -68,6 +68,7 @@ const menuItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { href: "/pregnancy", label: "Pregnancy", icon: Baby },
   { href: "/appointments", label: "Appointments", icon: CalendarDays },
+  { href: "/vaccinations", label: "Vaccinations", icon: ShieldCheck },
   { href: "/chatbot", label: "Support Chat", icon: MessageSquare },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ]
@@ -805,7 +806,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { openModal } = useModalStore();
   const { user, loading } = useAuth();
 
-  const hideFab = pathname === '/appointments';
+  const hideFab = pathname === '/appointments' || pathname === '/vaccinations';
 
   if (loading || !user) {
     return <LoadingSkeleton />;
