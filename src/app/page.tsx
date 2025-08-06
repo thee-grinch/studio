@@ -1,4 +1,5 @@
 
+
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,6 +8,7 @@ import { Baby, Bot, CalendarCheck, HeartPulse, Sparkles, UserCheck } from "lucid
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { DynamicPexelsImage } from "@/components/dynamic-pexels-image"
+import Image from "next/image"
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
   const Icon = icon
@@ -89,10 +91,11 @@ export default function LandingPage() {
             </div>
             <div className="flex justify-center">
               <div className="relative w-[600px] h-[400px] rounded-xl shadow-2xl overflow-hidden">
-                <DynamicPexelsImage
-                  hint="happy pregnant african mother"
+                <Image
+                  src="/hero-image.png"
                   alt="Happy pregnant African mother using the app"
-                  className="w-full h-full"
+                  fill
+                  className="object-cover"
                 />
               </div>
             </div>
