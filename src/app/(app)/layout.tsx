@@ -62,6 +62,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUserDocument } from "@/hooks/use-user-document"
 import { addUserSubcollectionDoc } from "@/lib/firestore"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 
 
 const menuItems = [
@@ -610,8 +611,115 @@ const AddNoteModal = () => {
     )
 };
 
+const contactSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  relationship: z.string().min(2, "Relationship must be at least 2 characters."),
+  phone: z.string().min(10, "Please enter a valid phone number."),
+});
+
+
+const AddEmergencyContactModal = () => {
+  const { modals, closeModal } = useModalStore();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof contactSchema>>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      name: "",
+      relationship: "",
+      phone: "",
+    },
+  });
+
+  const handleSave = async (values: z.infer<typeof contactSchema>) => {
+    setLoading(true);
+    try {
+      await addUserSubcollectionDoc('emergencyContacts', values);
+      toast({ title: "Contact Saved!", description: "The emergency contact has been added." });
+      form.reset();
+      closeModal('addEmergencyContact');
+    } catch (error) {
+      console.error("Error saving contact:", error);
+      toast({ title: "Error", description: "Could not save contact. Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset();
+      closeModal('addEmergencyContact');
+    }
+  }
+
+  return (
+    <Dialog open={modals.addEmergencyContact} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Emergency Contact</DialogTitle>
+          <DialogDescription>
+            Fill in the details for a new emergency contact.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSave)} className="grid gap-4 py-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Jane Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="relationship"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Relationship</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Partner, Doctor" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input type="tel" placeholder="e.g., +1 (555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save Contact'}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
 const EmergencyModal = () => {
-    const { modals, closeModal } = useModalStore();
+    const { modals, closeModal, openModal } = useModalStore();
+    const { data: contacts, loading } = useUserSubcollection("emergencyContacts");
+
     return (
     <Dialog open={modals.emergencyContacts} onOpenChange={() => closeModal('emergencyContacts')}>
         <DialogContent>
@@ -623,14 +731,27 @@ const EmergencyModal = () => {
                  <Button className="w-full justify-start gap-4" size="lg" variant="destructive">
                     <Phone /> Call 911
                 </Button>
-                 <Button className="w-full justify-start gap-4" size="lg">
-                    <Phone /> Call John Doe (Partner)
-                </Button>
-                 <Button className="w-full justify-start gap-4" size="lg" variant="secondary">
-                    <Phone /> Call Dr. Smith (OB/GYN)
-                </Button>
+                {loading ? (
+                    <Skeleton className="h-12 w-full" />
+                ) : contacts.length > 0 ? (
+                    contacts.map(contact => (
+                         <Button asChild key={contact.id} className="w-full justify-start gap-4" size="lg">
+                            <a href={`tel:${contact.phone}`}>
+                                <Phone />
+                                <div>
+                                    <span className="font-semibold">{contact.name}</span>
+                                    <span className="text-sm text-primary-foreground/80 ml-2">({contact.relationship})</span>
+                                </div>
+                            </a>
+                        </Button>
+                    ))
+                ) : (
+                    <p className="text-center text-muted-foreground">No emergency contacts added yet.</p>
+                )}
+                 
             </div>
-             <DialogFooter>
+             <DialogFooter className="flex-col sm:flex-row sm:justify-between items-stretch sm:items-center gap-2">
+                <Button variant="secondary" onClick={() => openModal('addEmergencyContact')}>Add New Contact</Button>
                 <Button variant="outline" onClick={() => closeModal('emergencyContacts')}>Close</Button>
             </DialogFooter>
         </DialogContent>
@@ -820,6 +941,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AddNoteModal />
       <EmergencyModal />
       <ProfileSetupModal />
+      <AddEmergencyContactModal />
 
       <div className="flex min-h-screen w-full flex-col bg-background">
         <div className="flex flex-1">

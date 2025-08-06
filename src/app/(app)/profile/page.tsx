@@ -31,6 +31,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useModalStore } from "@/lib/store"
 
 const personalDetailsSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters.").regex(/^[a-zA-Z\s]*$/, "Full name can only contain letters and spaces."),
@@ -43,6 +44,7 @@ export default function ProfilePage() {
   const { toast } = useToast()
   const { user } = useAuth()
   const [loading, setLoading] = useState(false);
+  const openModal = useModalStore((state) => state.openModal);
 
   const form = useForm<z.infer<typeof personalDetailsSchema>>({
     resolver: zodResolver(personalDetailsSchema),
@@ -183,18 +185,13 @@ export default function ProfilePage() {
                 <CardTitle>Emergency Contact</CardTitle>
                 <CardDescription>This contact will be used in case of an emergency.</CardDescription>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                  <Label htmlFor="emergency-name">Contact Name</Label>
-                  <Input id="emergency-name" defaultValue="John Doe" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="emergency-phone">Contact Phone</Label>
-                  <Input id="emergency-phone" type="tel" defaultValue="+1 (555) 987-6543" />
-                </div>
+            <CardContent>
+                <p className="text-sm text-muted-foreground">
+                    Click the button below to view and manage your emergency contacts.
+                </p>
             </CardContent>
              <CardFooter className="border-t px-6 py-4">
-              <Button onClick={() => handleSave('Emergency Contact')}>Save Emergency Contact</Button>
+              <Button onClick={() => openModal('emergencyContacts')}>Manage Emergency Contacts</Button>
             </CardFooter>
           </Card>
         </div>

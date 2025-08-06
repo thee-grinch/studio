@@ -6,6 +6,7 @@ type ModalType =
   | 'logSymptom' 
   | 'emergencyContacts'
   | 'addNote'
+  | 'addEmergencyContact'
   | 'profileSetup';
 
 interface ModalState {
@@ -23,6 +24,7 @@ export const useModalStore = create<ModalState>()((set) => ({
     emergencyContacts: false,
     addNote: false,
     profileSetup: false,
+    addEmergencyContact: false,
   },
   openModal: (type) => set((state) => ({
     modals: { ...state.modals, [type]: true }
