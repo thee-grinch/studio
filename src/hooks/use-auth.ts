@@ -1,7 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { onAuthChange, type User } from '@/lib/auth';
+import { onAuthChange, type User, signInWithGoogle, CALENDAR_SCOPE } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
+import { getAdditionalUserInfo, getRedirectResult } from 'firebase/auth';
+import { useToast } from './use-toast';
 
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 const PUBLIC_ROUTES = ['/privacy-policy', '/terms-of-service', '/contact'];
@@ -11,6 +13,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthChange((user) => {
@@ -20,6 +23,24 @@ export function useAuth() {
 
     return () => unsubscribe();
   }, []);
+
+  const handleGoogleSignInForCalendar = async () => {
+    try {
+      const result = await signInWithGoogle();
+      const details = getAdditionalUserInfo(result);
+      if (details?.isNewUser) {
+        toast({ title: "Account Linked!", description: "Your Google account is now linked." });
+      } else {
+        toast({ title: "Signed In!", description: "Successfully signed in with Google."});
+      }
+      return result;
+    } catch (error: any) {
+      console.error("Google Sign-In Error", error);
+      toast({ title: "Error", description: `Could not link Google Account. ${error.message}`, variant: "destructive" });
+      return null;
+    }
+  }
+
 
   useEffect(() => {
     if (loading) {
@@ -36,5 +57,5 @@ export function useAuth() {
     }
   }, [user, loading, pathname, router]);
 
-  return { user, loading };
+  return { user, loading, handleGoogleSignInForCalendar };
 }

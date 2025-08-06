@@ -10,11 +10,38 @@ import {
   onAuthStateChanged,
   updateProfile,
   type User,
+  GoogleAuthProvider,
+  signInWithPopup,
+  linkWithPopup,
+  OAuthProvider,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 // Re-export the User type for convenience
 export type { User };
+
+export const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+
+export const signInWithGoogle = async () => {
+    if (!auth?.currentUser) {
+        throw new Error("User must be logged in to link a Google Account.");
+    }
+    const provider = new GoogleAuthProvider();
+    provider.addScope(CALENDAR_SCOPE);
+    
+    // Check if the user already has a Google credential linked
+    const isGoogleLinked = auth.currentUser.providerData.some(
+        (pd) => pd.providerId === GoogleAuthProvider.PROVIDER_ID
+    );
+
+    if (isGoogleLinked) {
+         // If already linked, we can just re-authenticate to get a fresh token if needed
+        return signInWithPopup(auth, provider);
+    } else {
+        // If not linked, link the new credential
+        return linkWithPopup(auth.currentUser, provider);
+    }
+};
 
 // Simplified wrapper functions
 export const signUp = async (email, password, fullName) => {

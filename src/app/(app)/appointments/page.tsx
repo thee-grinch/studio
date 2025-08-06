@@ -38,7 +38,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useModalStore } from "@/lib/store"
 import { useUserSubcollection } from "@/hooks/use-user-subcollection"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
+import { GoogleAuthProvider, OAuthProvider } from "firebase/auth"
+import { CALENDAR_SCOPE } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 
 const getIconForType = (type: string) => {
   switch (type) {
@@ -92,7 +96,7 @@ const getStatusStyles = (status: string) => {
   }
 }
 
-const AppointmentDetailsModal = ({ appt, children }: { appt: any, children: React.ReactNode }) => (
+const AppointmentDetailsModal = ({ appt, onAddToCalendar, isAddingToCalendar }: { appt: any, children: React.ReactNode, onAddToCalendar: (appt: any) => void, isAddingToCalendar: boolean }) => (
     <Dialog>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -130,7 +134,9 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: any, children: Reac
                   {appt.status === "Upcoming" && <Button variant="destructive" size="sm" className="w-full sm:w-auto"><Trash2 className="mr-2" /> Cancel</Button>}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto"><CalendarIcon className="mr-2" /> Add to Calendar</Button>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => onAddToCalendar(appt)} disabled={isAddingToCalendar}>
+                      <CalendarIcon className="mr-2" /> {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
+                    </Button>
                     {appt.status === "Upcoming" && <Button size="sm" className="w-full sm:w-auto"><Pencil className="mr-2" /> Edit</Button>}
                 </div>
             </DialogFooter>
@@ -141,8 +147,12 @@ const AppointmentDetailsModal = ({ appt, children }: { appt: any, children: Reac
 
 function AppointmentCard({
   appt,
+  onAddToCalendar,
+  isAddingToCalendar
 }: {
   appt: any;
+  onAddToCalendar: (appt: any) => void;
+  isAddingToCalendar: boolean;
 }) {
   const { borderColor, badgeVariant } = getStatusStyles(appt.status)
 
@@ -192,11 +202,11 @@ function AppointmentCard({
         </div>
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 p-4 pt-0">
-        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => onAddToCalendar(appt)} disabled={isAddingToCalendar}>
             <CalendarIcon className="mr-2" />
-            Add to Calendar
+            {isAddingToCalendar ? 'Adding...' : 'Add to Calendar'}
         </Button>
-        <AppointmentDetailsModal appt={appt}>
+        <AppointmentDetailsModal appt={appt} onAddToCalendar={onAddToCalendar} isAddingToCalendar={isAddingToCalendar}>
             <Button variant="default" size="sm" className="w-full sm:w-auto">
                 <ExternalLink className="mr-2" />
                 View Details
@@ -244,6 +254,49 @@ function AppointmentsLoadingSkeleton() {
 export default function AppointmentsPage() {
   const openModal = useModalStore((state) => state.openModal);
   const { data: appointmentsData, loading: appointmentsLoading } = useUserSubcollection("appointments");
+  const { handleGoogleSignInForCalendar } = useAuth();
+  const { toast } = useToast();
+  const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
+
+  const handleAddToCalendar = async (appointment: any) => {
+      setIsAddingToCalendar(true);
+      try {
+          const credential = await handleGoogleSignInForCalendar();
+          if (!credential) {
+              throw new Error("Google Sign-In was cancelled or failed.");
+          }
+          
+          const credentialHelper = OAuthProvider.credentialFromResult(credential);
+          const accessToken = credentialHelper?.accessToken;
+
+          if (!accessToken) {
+              throw new Error("Could not retrieve access token from Google.");
+          }
+
+          const response = await fetch('/api/calendar/create-event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accessToken, appointment }),
+          });
+
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Failed to create calendar event.');
+          }
+
+          toast({ title: "Success!", description: "Appointment added to your Google Calendar." });
+
+      } catch (error: any) {
+          console.error("Error adding to calendar:", error);
+          toast({
+              title: "Error",
+              description: error.message || "Could not add appointment to calendar.",
+              variant: "destructive",
+          });
+      } finally {
+          setIsAddingToCalendar(false);
+      }
+  };
 
   const processedAppointments = useMemo(() => {
     if (!appointmentsData) return [];
@@ -296,7 +349,12 @@ export default function AppointmentsPage() {
                 <div className="grid gap-4">
                   {upcomingAppointments.length > 0 ? (
                     upcomingAppointments.map((appt) => (
-                      <AppointmentCard key={appt.id} appt={appt} />
+                      <AppointmentCard 
+                        key={appt.id} 
+                        appt={appt} 
+                        onAddToCalendar={handleAddToCalendar}
+                        isAddingToCalendar={isAddingToCalendar} 
+                      />
                     ))
                   ) : (
                     <p className="py-8 text-center text-muted-foreground">
@@ -311,7 +369,12 @@ export default function AppointmentsPage() {
                   <div className="grid gap-4">
                     {completedAppointments.length > 0 ? (
                       completedAppointments.map((appt) => (
-                        <AppointmentCard key={appt.id} appt={appt} />
+                        <AppointmentCard 
+                          key={appt.id} 
+                          appt={appt} 
+                          onAddToCalendar={handleAddToCalendar}
+                          isAddingToCalendar={isAddingToCalendar} 
+                        />
                       ))
                     ) : (
                       <p className="py-8 text-center text-muted-foreground">
@@ -325,7 +388,12 @@ export default function AppointmentsPage() {
               <div className="grid gap-4">
                 {missedAppointments.length > 0 ? (
                   missedAppointments.map((appt) => (
-                    <AppointmentCard key={appt.id} appt={appt} />
+                    <AppointmentCard 
+                      key={appt.id} 
+                      appt={appt} 
+                      onAddToCalendar={handleAddToCalendar}
+                      isAddingToCalendar={isAddingToCalendar} 
+                    />
                   ))
                 ) : (
                   <p className="py-8 text-center text-muted-foreground">
@@ -398,5 +466,3 @@ export default function AppointmentsPage() {
     </div>
   )
 }
-
-    
