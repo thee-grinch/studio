@@ -25,7 +25,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import Image from "next/image"
+import { format, parseISO } from "date-fns";
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -88,17 +88,6 @@ const calculatePregnancyInfo = (dueDateStr: string | undefined) => {
         trimester,
     }
 }
-
-
-const weightData = [
-  { date: "Wk 8", weight: 140 },
-  { date: "Wk 9", weight: 140.5 },
-  { date: "Wk 10", weight: 141 },
-  { date: "Wk 11", weight: 142 },
-  { date: "Wk 12", weight: 142.5 },
-  { date: "Wk 13", weight: 144 },
-  { date: "Wk 14", weight: 145 },
-]
 
 const chartConfig: ChartConfig = {
   weight: {
@@ -249,6 +238,8 @@ export default function PregnancyPage() {
   const { userDocument, loading: userDocLoading } = useUserDocument();
   const { data: symptomData, loading: symptomsLoading } = useUserSubcollection("symptoms");
   const { data: appointmentsData, loading: appointmentsLoading } = useUserSubcollection("appointments");
+  const { data: weightData, loading: weightsLoading } = useUserSubcollection("weights");
+
   
   const pregnancyInfo = calculatePregnancyInfo(userDocument?.dueDate);
 
@@ -270,6 +261,16 @@ export default function PregnancyPage() {
   const nextAppointment = processedAppointments
     .filter((a) => a.status === "Upcoming")
     .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())[0];
+
+  const processedWeightData = useMemo(() => {
+    if (!weightData) return [];
+    return weightData
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(log => ({
+            date: format(parseISO(log.date), 'MMM d'),
+            weight: log.weight
+        }));
+  }, [weightData]);
 
 
   if (userDocLoading) return <div>Loading...</div>
@@ -372,25 +373,38 @@ export default function PregnancyPage() {
                     <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle>Weight Tracker</CardTitle>
-                            <CardDescription>AI suggests weight gain is on a healthy track.</CardDescription>
+                            <CardDescription>Monitor your weight gain throughout your pregnancy.</CardDescription>
                         </div>
                         <Button onClick={() => openModal('logWeight')}>
                             <Weight className="mr-2 h-4 w-4" /> Log Weight
                         </Button>
                     </CardHeader>
                     <CardContent>
-                         <ChartContainer config={chartConfig} className="w-full h-64">
-                            <ResponsiveContainer>
-                                <LineChart data={weightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                        {weightsLoading ? (
+                             <div className="w-full h-64 flex items-center justify-center">
+                                <Skeleton className="h-full w-full" />
+                             </div>
+                        ) : processedWeightData.length > 0 ? (
+                            <ChartContainer config={chartConfig} className="w-full h-64">
+                                <ResponsiveContainer>
+                                    <LineChart data={processedWeightData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="date" />
+                                        <YAxis domain={['dataMin - 2', 'dataMax + 2']} />
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </ChartContainer>
+                        ) : (
+                             <div className="w-full h-64 flex flex-col items-center justify-center text-center bg-muted rounded-lg">
+                                <p className="text-muted-foreground mb-4">No weight logged yet.</p>
+                                <Button onClick={() => openModal('logWeight')}>
+                                    <Weight className="mr-2 h-4 w-4" /> Log Your First Weight
+                                </Button>
+                             </div>
+                        )}
                     </CardContent>
                 </Card>
                  <Card>
@@ -418,10 +432,10 @@ export default function PregnancyPage() {
                           </div>
                         ))
                       ) : symptomData && symptomData.length > 0 ? (
-                        symptomData.map(log => (
+                        symptomData.slice(0, 5).map(log => (
                           <div key={log.id} className="flex flex-col sm:flex-row justify-between items-start p-3 bg-muted rounded-lg gap-2">
                               <div>
-                                <p className="font-semibold">{new Date(log.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                <p className="font-semibold">{format(parseISO(log.date), 'PPPP')}</p>
                                 <div className="text-sm text-muted-foreground mt-1">
                                   {log.symptoms?.length > 0 && <p>Symptoms: {log.symptoms.join(", ")}</p>}
                                   {log.moods?.length > 0 && <p>Moods: {log.moods.join(", ")}</p>}
@@ -433,7 +447,12 @@ export default function PregnancyPage() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-center text-muted-foreground py-8">No symptoms logged yet.</p>
+                        <div className="w-full h-48 flex flex-col items-center justify-center text-center bg-muted rounded-lg">
+                            <p className="text-muted-foreground mb-4">No symptoms logged yet.</p>
+                            <Button onClick={() => openModal('logSymptom')}>
+                                <HeartPulse className="mr-2 h-4 w-4" /> Log How You're Feeling
+                            </Button>
+                        </div>
                       )}
                     </CardContent>
                 </Card>
