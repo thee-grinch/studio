@@ -90,8 +90,8 @@ export default function LandingPage() {
             <div className="flex justify-center">
               <div className="relative w-[600px] h-[400px] rounded-xl shadow-2xl overflow-hidden">
                 <DynamicPexelsImage
-                  hint="happy pregnant african woman"
-                  alt="Happy pregnant African woman using the app"
+                  hint="happy pregnant african mother"
+                  alt="Happy pregnant African mother using the app"
                   className="w-full h-full"
                 />
               </div>
