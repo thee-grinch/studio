@@ -8,7 +8,6 @@
  * - HealthChatbotOutput - The return type for the healthChatbot function.
  */
 import {ai} from '@/ai/genkit';
-import {generate} from 'genkit/ai';
 import {z} from 'genkit';
 
 const HistoryItemSchema = z.object({
@@ -42,7 +41,7 @@ const healthChatbotFlow = ai.defineFlow(
     outputSchema: HealthChatbotOutputSchema,
   },
   async ({ question, history }) => {
-    const response = await generate({
+    const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash',
       prompt: question,
       history: history as any, // Cast to any to match genkit's internal Message type
@@ -58,6 +57,6 @@ IMPORTANT:
       },
     });
 
-    return response.output()!;
+    return response.output!;
   }
 );
