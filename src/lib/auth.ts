@@ -22,6 +22,13 @@ export type { User };
 
 export const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
+/**
+ * Initiates Google Sign-In and links it to the current user's account.
+ * This function requests the necessary scopes for Google Calendar.
+ * If the user's account is not already linked to Google, it will link it.
+ * If it is already linked, it will re-authenticate to get a fresh token.
+ * @returns {Promise<import("firebase/auth").UserCredential | null>} A promise that resolves with the user credential on success, or null on failure.
+ */
 export const signInWithGoogle = async () => {
     if (!auth?.currentUser) {
         throw new Error("User must be logged in to link a Google Account.");
@@ -43,7 +50,14 @@ export const signInWithGoogle = async () => {
     }
 };
 
-// Simplified wrapper functions
+/**
+ * Signs up a new user with email, password, and full name.
+ * Creates a user document in Firestore and sends a verification email.
+ * @param {string} email - The user's email address.
+ * @param {string} password - The user's chosen password.
+ * @param {string} fullName - The user's full name.
+ * @returns {Promise<import("firebase/auth").UserCredential>} A promise that resolves with the user credential upon successful registration.
+ */
 export const signUp = async (email, password, fullName) => {
   if (!auth) {
     throw new Error("Firebase has not been initialized correctly.");
@@ -74,6 +88,12 @@ export const signUp = async (email, password, fullName) => {
   return userCredential;
 };
 
+/**
+ * Logs in an existing user with their email and password.
+ * @param {string} email - The user's email address.
+ * @param {string} password - The user's password.
+ * @returns {Promise<import("firebase/auth").UserCredential>} A promise that resolves with the user credential upon successful login.
+ */
 export const logIn = (email, password) => {
   if (!auth) {
     throw new Error("Firebase has not been initialized correctly.");
@@ -81,6 +101,10 @@ export const logIn = (email, password) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
 
+/**
+ * Logs out the currently authenticated user.
+ * @returns {Promise<void>} A promise that resolves when the user has been logged out.
+ */
 export const logOut = () => {
     if (!auth) {
     throw new Error("Firebase has not been initialized correctly.");
@@ -88,6 +112,11 @@ export const logOut = () => {
   return signOut(auth);
 };
 
+/**
+ * Sends a password reset email to the specified address.
+ * @param {string} email - The email address to send the reset link to.
+ * @returns {Promise<void>} A promise that resolves when the reset email has been sent.
+ */
 export const resetPassword = (email) => {
     if (!auth) {
     throw new Error("Firebase has not been initialized correctly.");
@@ -95,6 +124,11 @@ export const resetPassword = (email) => {
   return sendPasswordResetEmail(auth, email);
 };
 
+/**
+ * Sets up a listener for authentication state changes.
+ * @param {(user: User | null) => void} callback - A callback function that is invoked when the auth state changes. It receives the user object or null.
+ * @returns {import("firebase/auth").Unsubscribe} A function to unsubscribe the listener.
+ */
 export const onAuthChange = (callback) => {
     if (!auth) {
         // If firebase is not configured, call the callback with null
@@ -105,6 +139,14 @@ export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
 
+/**
+ * Updates the user's profile in both Firebase Auth and Firestore.
+ * @param {object} data - An object containing the data to update.
+ * @param {string} [data.displayName] - The user's new display name.
+ * @param {string} [data.dueDate] - The user's estimated due date.
+ * @param {number} [data.weight] - The user's current weight.
+ * @returns {Promise<void>} A promise that resolves when the profile has been updated.
+ */
 export const updateUserProfile = async (data: { displayName?: string; dueDate?: string; weight?: number; }) => {
     if (!auth?.currentUser) {
         throw new Error("No user is currently signed in.");
